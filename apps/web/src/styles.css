@@ -151,6 +151,11 @@ a {
   width: 100%;
 }
 
+.muted-card {
+  background: #f7f3ed;
+  border: 1px solid #efe9df;
+}
+
 .field {
   display: grid;
   gap: 0.4rem;
@@ -163,6 +168,37 @@ a {
   border-radius: 12px;
   border: 1px solid #dcd6cd;
   font-size: 1rem;
+}
+
+.form-row {
+  display: grid;
+  gap: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.toggle-row {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #6a6458;
+}
+
+.toast {
+  background: #1f1f1f;
+  color: #ffffff;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
 }
 
 .auth {
@@ -192,6 +228,41 @@ a {
 .grid {
   display: grid;
   gap: 0.75rem;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 14, 12, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 10;
+}
+
+.modal-card {
+  background: #ffffff;
+  width: min(640px, 100%);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 24px 48px rgba(31, 31, 31, 0.2);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+  .form-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (min-width: 768px) {

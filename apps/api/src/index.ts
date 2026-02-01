@@ -52,6 +52,12 @@ const houseQuickSchema = z
   })
   .strict();
 
+const authLoginSchema = z
+  .object({
+    password: z.string().trim().min(1)
+  })
+  .strict();
+
 const housesQuerySchema = z
   .object({
     search: z.string().trim().min(1).optional(),
@@ -157,6 +163,49 @@ app.get("/health", (c) =>
     data: { status: "up" }
   })
 );
+
+app.post("/auth/login", async (c) => {
+  let payload: unknown;
+  try {
+    payload = await c.req.json();
+  } catch {
+    return c.json(
+      { ok: false, error: { message: "Invalid JSON body" } },
+      400
+    );
+  }
+
+  const parsed = authLoginSchema.safeParse(payload);
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid request body",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const apiKey = c.env.API_KEY?.trim();
+  if (!apiKey) {
+    return c.json(
+      { ok: false, error: { message: "API_KEY not configured" } },
+      500
+    );
+  }
+
+  if (parsed.data.password !== apiKey) {
+    return c.json(
+      { ok: false, error: { message: "Invalid credentials" } },
+      401
+    );
+  }
+
+  return c.json({ ok: true, data: { token: apiKey } });
+});
 
 app.get("/houses", authGuard, async (c) => {
   const parsed = housesQuerySchema.safeParse(c.req.query());
