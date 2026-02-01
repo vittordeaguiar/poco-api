@@ -89,6 +89,41 @@ const payInvoiceSchema = z
   })
   .strict();
 
+const dashboardQuerySchema = z
+  .object({
+    year: z
+      .string()
+      .transform((value) => Number.parseInt(value, 10))
+      .refine((value) => Number.isFinite(value) && value >= 2000, {
+        message: "year must be >= 2000"
+      }),
+    month: z
+      .string()
+      .transform((value) => Number.parseInt(value, 10))
+      .refine((value) => Number.isFinite(value) && value >= 1 && value <= 12, {
+        message: "month must be between 1 and 12"
+      })
+  })
+  .strict();
+
+const lateQuerySchema = z
+  .object({
+    as_of_year: z
+      .string()
+      .transform((value) => Number.parseInt(value, 10))
+      .refine((value) => Number.isFinite(value) && value >= 2000, {
+        message: "as_of_year must be >= 2000"
+      }),
+    as_of_month: z
+      .string()
+      .transform((value) => Number.parseInt(value, 10))
+      .refine(
+        (value) => Number.isFinite(value) && value >= 1 && value <= 12,
+        { message: "as_of_month must be between 1 and 12" }
+      )
+  })
+  .strict();
+
 app.get("/health", (c) =>
   c.json({
     ok: true,
@@ -699,6 +734,202 @@ app.post("/invoices/:id/pay", authGuard, async (c) => {
         ok: false,
         error: {
           message: "Database error while paying invoice",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+});
+
+app.get("/dashboard", authGuard, async (c) => {
+  const parsed = dashboardQuerySchema.safeParse(c.req.query());
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid query parameters",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const { year, month } = parsed.data;
+  const asOfKey = year * 12 + month;
+
+  try {
+    const receivedResult = await c.env.poco_db
+      .prepare(
+        `SELECT COALESCE(SUM(p.amount_cents), 0) AS received_cents
+         FROM payments p
+         JOIN invoices i ON i.id = p.invoice_id
+         WHERE i.year = ? AND i.month = ?`
+      )
+      .bind(year, month)
+      .first<{ received_cents: number }>();
+
+    const openResult = await c.env.poco_db
+      .prepare(
+        `SELECT COALESCE(SUM(amount_cents), 0) AS open_cents
+         FROM invoices
+         WHERE year = ? AND month = ? AND status = 'open'`
+      )
+      .bind(year, month)
+      .first<{ open_cents: number }>();
+
+    const lateResult = await c.env.poco_db
+      .prepare(
+        `SELECT COUNT(DISTINCT house_id) AS houses_late_count
+         FROM invoices
+         WHERE status = 'open' AND (year * 12 + month) < ?`
+      )
+      .bind(asOfKey)
+      .first<{ houses_late_count: number }>();
+
+    return c.json({
+      ok: true,
+      data: {
+        received_cents: receivedResult?.received_cents ?? 0,
+        open_cents: openResult?.open_cents ?? 0,
+        houses_late_count: lateResult?.houses_late_count ?? 0
+      }
+    });
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while loading dashboard",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+});
+
+app.get("/late", authGuard, async (c) => {
+  const parsed = lateQuerySchema.safeParse(c.req.query());
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid query parameters",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const { as_of_year, as_of_month } = parsed.data;
+  const asOfKey = as_of_year * 12 + as_of_month;
+
+  try {
+    const lateRows = await c.env.poco_db
+      .prepare(
+        `SELECT
+           h.id AS house_id,
+           h.street,
+           h.house_number,
+           h.complement,
+           h.cep,
+           h.reference,
+           h.status,
+           p.id AS responsible_id,
+           p.name AS responsible_name,
+           p.phone AS responsible_phone,
+           i.id AS invoice_id,
+           i.year,
+           i.month,
+           i.amount_cents,
+           i.status AS invoice_status,
+           i.due_date
+         FROM invoices i
+         JOIN houses h ON h.id = i.house_id
+         LEFT JOIN house_responsibilities hr
+           ON hr.house_id = h.id AND hr.end_at IS NULL
+         LEFT JOIN people p ON p.id = hr.person_id
+         WHERE i.status = 'open'
+           AND (i.year * 12 + i.month) < ?
+         ORDER BY h.id, i.year DESC, i.month DESC`
+      )
+      .bind(asOfKey)
+      .all();
+
+    const map = new Map<
+      string,
+      {
+        house: Record<string, unknown>;
+        responsible_current: Record<string, unknown> | null;
+        invoices: Array<Record<string, unknown>>;
+        months_late: number;
+      }
+    >();
+
+    for (const row of lateRows.results) {
+      const houseId = row.house_id as string;
+      const monthKey = (row.year as number) * 12 + (row.month as number);
+      const monthsLate = Math.max(asOfKey - monthKey, 0);
+
+      if (!map.has(houseId)) {
+        map.set(houseId, {
+          house: {
+            id: row.house_id,
+            street: row.street,
+            house_number: row.house_number,
+            complement: row.complement,
+            cep: row.cep,
+            reference: row.reference,
+            status: row.status
+          },
+          responsible_current: row.responsible_id
+            ? {
+                id: row.responsible_id,
+                name: row.responsible_name,
+                phone: row.responsible_phone
+              }
+            : null,
+          invoices: [],
+          months_late: 0
+        });
+      }
+
+      const entry = map.get(houseId);
+      if (entry) {
+        entry.invoices.push({
+          id: row.invoice_id,
+          year: row.year,
+          month: row.month,
+          amount_cents: row.amount_cents,
+          status: row.invoice_status,
+          due_date: row.due_date
+        });
+
+        if (monthsLate > entry.months_late) {
+          entry.months_late = monthsLate;
+        }
+      }
+    }
+
+    const items = Array.from(map.values()).map((entry) => ({
+      house: entry.house,
+      responsible_current: entry.responsible_current,
+      months_late: entry.months_late,
+      invoices_open: entry.invoices
+    }));
+
+    return c.json({ ok: true, data: { items } });
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while loading late list",
           details: error instanceof Error ? error.message : String(error)
         }
       },
