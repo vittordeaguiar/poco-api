@@ -7,6 +7,7 @@ import { LatePage } from "./pages/LatePage";
 import { WellPage } from "./pages/WellPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { PendingPage } from "./pages/PendingPage";
 import { redirectIfAuthenticated, requireAuth } from "./lib/auth";
 
 export const router = createBrowserRouter([
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
       { index: true, element: <DashboardPage /> },
       { path: "houses", element: <HousesPage /> },
       { path: "houses/:id", element: <HouseDetailPage /> },
+      { path: "pending", element: <PendingPage /> },
       { path: "late", element: <LatePage /> },
       { path: "well", element: <WellPage /> }
     ]

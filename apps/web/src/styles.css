@@ -205,6 +205,12 @@ a {
   gap: 0.5rem;
 }
 
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
 .toggle {
   display: flex;
   align-items: center;
@@ -291,6 +297,18 @@ a {
 .grid {
   display: grid;
   gap: 0.75rem;
+}
+
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.action-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .invoice-row {

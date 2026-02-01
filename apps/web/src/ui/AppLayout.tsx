@@ -4,6 +4,7 @@ import { clearToken } from "../lib/auth";
 const navItems = [
   { to: "/", label: "Dashboard" },
   { to: "/houses", label: "Casas" },
+  { to: "/pending", label: "Pendências" },
   { to: "/late", label: "Atrasos" },
   { to: "/well", label: "Poço" }
 ];
