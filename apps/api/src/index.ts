@@ -52,12 +52,289 @@ const houseQuickSchema = z
   })
   .strict();
 
+const housesQuerySchema = z
+  .object({
+    search: z.string().trim().min(1).optional(),
+    status: z.enum(["active", "inactive", "pending"]).optional(),
+    page: z
+      .string()
+      .transform((value) => Number.parseInt(value, 10))
+      .refine((value) => Number.isFinite(value) && value >= 1, {
+        message: "page must be >= 1"
+      })
+      .optional(),
+    pageSize: z
+      .string()
+      .transform((value) => Number.parseInt(value, 10))
+      .refine((value) => Number.isFinite(value) && value >= 1, {
+        message: "pageSize must be >= 1"
+      })
+      .optional()
+  })
+  .strict();
+
 app.get("/health", (c) =>
   c.json({
     ok: true,
     data: { status: "up" }
   })
 );
+
+app.get("/houses", authGuard, async (c) => {
+  const parsed = housesQuerySchema.safeParse(c.req.query());
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid query parameters",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const page = parsed.data.page ?? 1;
+  const pageSizeRaw = parsed.data.pageSize ?? 20;
+  const pageSize = Math.min(pageSizeRaw, 100);
+  const offset = (page - 1) * pageSize;
+
+  const where: string[] = [];
+  const bindings: unknown[] = [];
+
+  if (parsed.data.status) {
+    where.push("h.status = ?");
+    bindings.push(parsed.data.status);
+  }
+
+  if (parsed.data.search) {
+    const like = `%${parsed.data.search}%`;
+    where.push(
+      "(h.street LIKE ? OR h.house_number LIKE ? OR p.name LIKE ? OR p.phone LIKE ?)"
+    );
+    bindings.push(like, like, like, like);
+  }
+
+  const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+
+  try {
+    const countResult = await c.env.poco_db
+      .prepare(
+        `SELECT COUNT(DISTINCT h.id) AS total
+         FROM houses h
+         LEFT JOIN house_responsibilities hr
+           ON hr.house_id = h.id AND hr.end_at IS NULL
+         LEFT JOIN people p ON p.id = hr.person_id
+         ${whereClause}`
+      )
+      .bind(...bindings)
+      .first<{ total: number }>();
+
+    const total = countResult?.total ?? 0;
+
+    const rowsResult = await c.env.poco_db
+      .prepare(
+        `SELECT
+           h.id,
+           h.street,
+           h.house_number,
+           h.complement,
+           h.cep,
+           h.reference,
+           h.monthly_amount_cents,
+           h.status,
+           h.notes,
+           h.created_at,
+           h.updated_at,
+           p.id AS responsible_id,
+           p.name AS responsible_name,
+           p.phone AS responsible_phone
+         FROM houses h
+         LEFT JOIN house_responsibilities hr
+           ON hr.house_id = h.id AND hr.end_at IS NULL
+         LEFT JOIN people p ON p.id = hr.person_id
+         ${whereClause}
+         ORDER BY h.created_at DESC
+         LIMIT ? OFFSET ?`
+      )
+      .bind(...bindings, pageSize, offset)
+      .all();
+
+    const items = rowsResult.results.map((row) => ({
+      id: row.id,
+      street: row.street,
+      house_number: row.house_number,
+      complement: row.complement,
+      cep: row.cep,
+      reference: row.reference,
+      monthly_amount_cents: row.monthly_amount_cents,
+      status: row.status,
+      notes: row.notes,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      responsible_current: row.responsible_id
+        ? {
+            id: row.responsible_id,
+            name: row.responsible_name,
+            phone: row.responsible_phone
+          }
+        : null
+    }));
+
+    return c.json({
+      ok: true,
+      data: {
+        items,
+        pagination: {
+          page,
+          pageSize,
+          total,
+          totalPages: total === 0 ? 0 : Math.ceil(total / pageSize)
+        }
+      }
+    });
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while listing houses",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+});
+
+app.get("/houses/:id", authGuard, async (c) => {
+  const houseId = c.req.param("id").trim();
+  if (!houseId) {
+    return c.json(
+      { ok: false, error: { message: "House id is required" } },
+      400
+    );
+  }
+
+  try {
+    const house = await c.env.poco_db
+      .prepare(
+        `SELECT
+           id,
+           street,
+           house_number,
+           complement,
+           cep,
+           reference,
+           monthly_amount_cents,
+           status,
+           notes,
+           created_at,
+           updated_at
+         FROM houses
+         WHERE id = ?`
+      )
+      .bind(houseId)
+      .first();
+
+    if (!house) {
+      return c.json(
+        { ok: false, error: { message: "House not found" } },
+        404
+      );
+    }
+
+    const responsibleCurrent = await c.env.poco_db
+      .prepare(
+        `SELECT
+           p.id,
+           p.name,
+           p.phone,
+           hr.start_at
+         FROM house_responsibilities hr
+         JOIN people p ON p.id = hr.person_id
+         WHERE hr.house_id = ? AND hr.end_at IS NULL
+         ORDER BY hr.start_at DESC
+         LIMIT 1`
+      )
+      .bind(houseId)
+      .first();
+
+    const historyResult = await c.env.poco_db
+      .prepare(
+        `SELECT
+           hr.id,
+           hr.house_id,
+           hr.person_id,
+           hr.start_at,
+           hr.end_at,
+           hr.reason,
+           p.name,
+           p.phone
+         FROM house_responsibilities hr
+         JOIN people p ON p.id = hr.person_id
+         WHERE hr.house_id = ?
+         ORDER BY hr.start_at DESC`
+      )
+      .bind(houseId)
+      .all();
+
+    const invoicesResult = await c.env.poco_db
+      .prepare(
+        `SELECT
+           id,
+           house_id,
+           year,
+           month,
+           amount_cents,
+           status,
+           due_date,
+           paid_at,
+           notes,
+           created_at,
+           updated_at
+         FROM invoices
+         WHERE house_id = ?
+         ORDER BY year DESC, month DESC
+         LIMIT 12`
+      )
+      .bind(houseId)
+      .all();
+
+    return c.json({
+      ok: true,
+      data: {
+        house,
+        responsible_current: responsibleCurrent ?? null,
+        responsible_history: historyResult.results.map((row) => ({
+          id: row.id,
+          house_id: row.house_id,
+          person_id: row.person_id,
+          start_at: row.start_at,
+          end_at: row.end_at,
+          reason: row.reason,
+          person: {
+            name: row.name,
+            phone: row.phone
+          }
+        })),
+        invoices: invoicesResult.results
+      }
+    });
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while loading house",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+});
 
 app.post("/houses/quick", authGuard, async (c) => {
   let payload: unknown;
