@@ -1,0 +1,11 @@
+name = "poco-api"
+main = "src/index.ts"
+compatibility_date = "2026-02-01"
+
+[[d1_databases]]
+binding = "poco_db"
+database_name = "poco-db"
+database_id = "106954de-48f6-45d1-a73b-17fc302c9e5c"
+
+[observability]
+enabled = true
