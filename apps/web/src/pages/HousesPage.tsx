@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiDownload, apiFetch } from "../lib/api";
+import { addToQueue, getQueueCount, isNetworkError } from "../lib/offlineQueue";
 
 const defaultMonthlyAmount = "90";
 const quadraStorageKey = "poco_quadra";
@@ -221,9 +222,24 @@ export const HousesPage = () => {
       showToast("Casa cadastrada com sucesso!");
       loadHouses();
     } catch (error) {
-      setFormError(
-        error instanceof Error ? error.message : "Falha ao salvar casa."
-      );
+      if (isNetworkError(error)) {
+        addToQueue({
+          id: crypto.randomUUID(),
+          type: "houses_quick",
+          payload,
+          created_at: new Date().toISOString()
+        });
+        setLastAddress(addressSnapshot);
+        resetAfterSave(addressSnapshot);
+        const count = getQueueCount();
+        showToast(
+          `Sem conexão. Salvo na fila para sincronizar (${count} pendências).`
+        );
+      } else {
+        setFormError(
+          error instanceof Error ? error.message : "Falha ao salvar casa."
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }

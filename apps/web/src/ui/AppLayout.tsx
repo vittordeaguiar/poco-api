@@ -1,21 +1,35 @@
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { clearToken } from "../lib/auth";
+import { getQueueCount, subscribeQueue } from "../lib/offlineQueue";
 
 const navItems = [
   { to: "/", label: "Dashboard" },
   { to: "/houses", label: "Casas" },
   { to: "/pending", label: "Pendências" },
+  { to: "/sync", label: "Sync" },
   { to: "/late", label: "Atrasos" },
   { to: "/well", label: "Poço" }
 ];
 
 export const AppLayout = () => {
   const navigate = useNavigate();
+  const [queueCount, setQueueCount] = useState(getQueueCount());
 
   const handleLogout = () => {
     clearToken();
     navigate("/login", { replace: true });
   };
+
+  useEffect(() => {
+    const handleChange = () => setQueueCount(getQueueCount());
+    const unsubscribe = subscribeQueue(handleChange);
+    window.addEventListener("storage", handleChange);
+    return () => {
+      unsubscribe();
+      window.removeEventListener("storage", handleChange);
+    };
+  }, []);
 
   return (
     <div className="app-shell">
@@ -43,7 +57,10 @@ export const AppLayout = () => {
             }
             end={item.to === "/"}
           >
-            {item.label}
+            <span>{item.label}</span>
+            {item.to === "/sync" && queueCount > 0 ? (
+              <span className="badge">{queueCount}</span>
+            ) : null}
           </NavLink>
         ))}
       </nav>

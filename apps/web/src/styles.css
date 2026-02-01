@@ -63,6 +63,9 @@ a {
 }
 
 .nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.85rem;
   color: #6a6458;
   padding: 0.4rem 0.75rem;
@@ -72,6 +75,20 @@ a {
 .nav-item.active {
   background: #1f1f1f;
   color: #ffffff;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #1f1f1f;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 600;
 }
 
 .stack {
