@@ -98,6 +98,11 @@ a {
   gap: 0.75rem;
 }
 
+.card-grid {
+  display: grid;
+  gap: 1rem;
+}
+
 .metric-label {
   display: block;
   font-size: 0.8rem;
@@ -201,6 +206,49 @@ a {
   font-weight: 600;
 }
 
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f0ebe3;
+  color: #6a6458;
+}
+
+.status-pill.status-active {
+  background: #e7f6e8;
+  color: #19662c;
+}
+
+.status-pill.status-pending {
+  background: #fff2d9;
+  color: #9c5b00;
+}
+
+.status-pill.status-inactive {
+  background: #f1f1f1;
+  color: #6a6458;
+}
+
+.status-pill.status-open {
+  background: #fff2d9;
+  color: #9c5b00;
+}
+
+.status-pill.status-paid {
+  background: #e7f6e8;
+  color: #19662c;
+}
+
+.status-pill.status-void {
+  background: #f1f1f1;
+  color: #6a6458;
+}
+
 .auth {
   min-height: 100vh;
   display: grid;
@@ -228,6 +276,34 @@ a {
 .grid {
   display: grid;
   gap: 0.75rem;
+}
+
+.invoice-row {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0ebe3;
+}
+
+.invoice-row:last-child {
+  border-bottom: none;
+}
+
+.invoice-actions {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.pay-controls {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.pay-controls select,
+.pay-controls input {
+  padding: 0.5rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid #dcd6cd;
 }
 
 .modal-backdrop {
@@ -276,5 +352,23 @@ a {
 
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .invoice-row {
+    grid-template-columns: 1.2fr 0.8fr;
+    align-items: center;
+  }
+
+  .invoice-actions {
+    justify-items: end;
+  }
+
+  .pay-controls {
+    grid-template-columns: 140px 1fr auto;
+    align-items: center;
   }
 }
