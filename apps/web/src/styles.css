@@ -145,7 +145,7 @@ p {
   top: 0;
   background: rgba(246, 242, 236, 0.92);
   backdrop-filter: blur(12px);
-  z-index: 2;
+  z-index: 5;
   border-bottom: 1px solid rgba(232, 223, 211, 0.7);
 }
 
@@ -708,4 +708,8 @@ p {
     animation: none !important;
     transition: none !important;
   }
+}
+
+.debug {
+  outline: 2px solid red;
 }

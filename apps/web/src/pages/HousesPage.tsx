@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiDownload, apiFetch } from "../lib/api";
 import { addToQueue, getQueueCount, isNetworkError } from "../lib/offlineQueue";
+import { Modal } from "../ui/Modal";
 
 const defaultMonthlyAmount = "90";
 const quadraStorageKey = "poco_quadra";
@@ -296,151 +297,138 @@ export const HousesPage = () => {
           ))}
       </div>
 
-      {isModalOpen ? (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card">
-            <div className="modal-header">
-              <div>
-                <p className="eyebrow">Cadastro rápido</p>
-                <h3>Nova casa</h3>
-              </div>
-              <button
-                className="link button-link"
-                onClick={() => setIsModalOpen(false)}
-              >
-                Fechar
-              </button>
-            </div>
+      <Modal
+        isOpen={isModalOpen}
+        title="Nova casa"
+        eyebrow="Cadastro rápido"
+        onClose={() => setIsModalOpen(false)}
+      >
+        <form className="stack" onSubmit={handleSubmit}>
+          <div className="field">
+            <span>Rua</span>
+            <input
+              type="text"
+              placeholder="Rua principal"
+              value={street}
+              onChange={(event) => setStreet(event.target.value)}
+            />
+          </div>
 
-            <form className="stack" onSubmit={handleSubmit}>
-              <div className="field">
-                <span>Rua</span>
-                <input
-                  type="text"
-                  placeholder="Rua principal"
-                  value={street}
-                  onChange={(event) => setStreet(event.target.value)}
-                />
-              </div>
+          <div className="form-row">
+            <label className="field">
+              <span>Número</span>
+              <input
+                type="text"
+                placeholder="123"
+                value={houseNumber}
+                onChange={(event) => setHouseNumber(event.target.value)}
+                required
+              />
+            </label>
+            <label className="field">
+              <span>CEP</span>
+              <input
+                type="text"
+                placeholder="00000-000"
+                value={cep}
+                onChange={(event) => setCep(event.target.value)}
+              />
+            </label>
+          </div>
 
-              <div className="form-row">
-                <label className="field">
-                  <span>Número</span>
-                  <input
-                    type="text"
-                    placeholder="123"
-                    value={houseNumber}
-                    onChange={(event) => setHouseNumber(event.target.value)}
-                    required
-                  />
-                </label>
-                <label className="field">
-                  <span>CEP</span>
-                  <input
-                    type="text"
-                    placeholder="00000-000"
-                    value={cep}
-                    onChange={(event) => setCep(event.target.value)}
-                  />
-                </label>
-              </div>
+          <div className="form-row">
+            <label className="field">
+              <span>Referência</span>
+              <input
+                type="text"
+                placeholder="Perto do mercado"
+                value={reference}
+                onChange={(event) => setReference(event.target.value)}
+              />
+            </label>
+            <label className="field">
+              <span>Complemento</span>
+              <input
+                type="text"
+                placeholder="Casa A"
+                value={complement}
+                onChange={(event) => setComplement(event.target.value)}
+              />
+            </label>
+          </div>
 
-              <div className="form-row">
-                <label className="field">
-                  <span>Referência</span>
-                  <input
-                    type="text"
-                    placeholder="Perto do mercado"
-                    value={reference}
-                    onChange={(event) => setReference(event.target.value)}
-                  />
-                </label>
-                <label className="field">
-                  <span>Complemento</span>
-                  <input
-                    type="text"
-                    placeholder="Casa A"
-                    value={complement}
-                    onChange={(event) => setComplement(event.target.value)}
-                  />
-                </label>
-              </div>
+          <label className="field">
+            <span>Mensalidade (R$)</span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={monthlyAmount}
+              onChange={(event) => setMonthlyAmount(event.target.value)}
+            />
+          </label>
 
+          <div className="card muted-card">
+            <strong>Responsável (opcional)</strong>
+            <div className="form-row">
               <label className="field">
-                <span>Mensalidade (R$)</span>
+                <span>Nome</span>
                 <input
                   type="text"
-                  inputMode="decimal"
-                  value={monthlyAmount}
-                  onChange={(event) => setMonthlyAmount(event.target.value)}
+                  placeholder="Nome do responsável"
+                  value={responsibleName}
+                  onChange={(event) => setResponsibleName(event.target.value)}
                 />
               </label>
-
-              <div className="card muted-card">
-                <strong>Responsável (opcional)</strong>
-                <div className="form-row">
-                  <label className="field">
-                    <span>Nome</span>
-                    <input
-                      type="text"
-                      placeholder="Nome do responsável"
-                      value={responsibleName}
-                      onChange={(event) => setResponsibleName(event.target.value)}
-                    />
-                  </label>
-                  <label className="field">
-                    <span>Telefone</span>
-                    <input
-                      type="text"
-                      placeholder="(11) 99999-9999"
-                      value={responsiblePhone}
-                      onChange={(event) => setResponsiblePhone(event.target.value)}
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <div className="toggle-row">
-                <label className="toggle">
-                  <input
-                    type="checkbox"
-                    checked={reuseAddress}
-                    onChange={(event) => setReuseAddress(event.target.checked)}
-                  />
-                  <span>Reutilizar endereço anterior</span>
-                </label>
-                <label className="toggle">
-                  <input
-                    type="checkbox"
-                    checked={modeQuadra}
-                    onChange={(event) => setModeQuadra(event.target.checked)}
-                  />
-                  <span>Modo quadra</span>
-                </label>
-              </div>
-
-              {modeQuadra ? (
-                <p className="muted">
-                  Modo quadra ativo: rua, CEP e referência permanecem até
-                  desligar.
-                </p>
-              ) : null}
-
-              {reuseAddress && !lastAddress ? (
-                <p className="muted">Nenhum endereço salvo ainda.</p>
-              ) : null}
-
-              {formError ? <p className="error">{formError}</p> : null}
-
-              <div className="form-actions">
-                <button className="primary" type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Salvando..." : "Salvar"}
-                </button>
-              </div>
-            </form>
+              <label className="field">
+                <span>Telefone</span>
+                <input
+                  type="text"
+                  placeholder="(11) 99999-9999"
+                  value={responsiblePhone}
+                  onChange={(event) => setResponsiblePhone(event.target.value)}
+                />
+              </label>
+            </div>
           </div>
-        </div>
-      ) : null}
+
+          <div className="toggle-row">
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={reuseAddress}
+                onChange={(event) => setReuseAddress(event.target.checked)}
+              />
+              <span>Reutilizar endereço anterior</span>
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={modeQuadra}
+                onChange={(event) => setModeQuadra(event.target.checked)}
+              />
+              <span>Modo quadra</span>
+            </label>
+          </div>
+
+          {modeQuadra ? (
+            <p className="muted">
+              Modo quadra ativo: rua, CEP e referência permanecem até desligar.
+            </p>
+          ) : null}
+
+          {reuseAddress && !lastAddress ? (
+            <p className="muted">Nenhum endereço salvo ainda.</p>
+          ) : null}
+
+          {formError ? <p className="error">{formError}</p> : null}
+
+          <div className="form-actions">
+            <button className="primary" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Salvando..." : "Salvar"}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </section>
   );
 };
