@@ -124,6 +124,33 @@ const lateQuerySchema = z
   })
   .strict();
 
+const wellEventCreateSchema = z
+  .object({
+    type: z.string().trim().min(1),
+    happened_at: z.string().trim().min(1).optional(),
+    notes: z.string().trim().min(1).optional()
+  })
+  .strict();
+
+const wellEventsQuerySchema = z
+  .object({
+    page: z
+      .string()
+      .transform((value) => Number.parseInt(value, 10))
+      .refine((value) => Number.isFinite(value) && value >= 1, {
+        message: "page must be >= 1"
+      })
+      .optional(),
+    pageSize: z
+      .string()
+      .transform((value) => Number.parseInt(value, 10))
+      .refine((value) => Number.isFinite(value) && value >= 1, {
+        message: "pageSize must be >= 1"
+      })
+      .optional()
+  })
+  .strict();
+
 app.get("/health", (c) =>
   c.json({
     ok: true,
@@ -930,6 +957,123 @@ app.get("/late", authGuard, async (c) => {
         ok: false,
         error: {
           message: "Database error while loading late list",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+});
+
+app.post("/well-events", authGuard, async (c) => {
+  let payload: unknown;
+  try {
+    payload = await c.req.json();
+  } catch {
+    return c.json(
+      { ok: false, error: { message: "Invalid JSON body" } },
+      400
+    );
+  }
+
+  const parsed = wellEventCreateSchema.safeParse(payload);
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid request body",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const { type, happened_at, notes } = parsed.data;
+  const eventId = crypto.randomUUID();
+  const happenedAtValue = happened_at ?? new Date().toISOString();
+
+  try {
+    await c.env.poco_db
+      .prepare(
+        `INSERT INTO well_events (id, type, happened_at, notes)
+         VALUES (?, ?, ?, ?)`
+      )
+      .bind(eventId, type, happenedAtValue, notes ?? null)
+      .run();
+
+    return c.json({ ok: true, data: { well_event_id: eventId } }, 201);
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while creating well event",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+});
+
+app.get("/well-events", authGuard, async (c) => {
+  const parsed = wellEventsQuerySchema.safeParse(c.req.query());
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid query parameters",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const page = parsed.data.page ?? 1;
+  const pageSizeRaw = parsed.data.pageSize ?? 20;
+  const pageSize = Math.min(pageSizeRaw, 100);
+  const offset = (page - 1) * pageSize;
+
+  try {
+    const totalResult = await c.env.poco_db
+      .prepare(`SELECT COUNT(*) AS total FROM well_events`)
+      .first<{ total: number }>();
+
+    const rowsResult = await c.env.poco_db
+      .prepare(
+        `SELECT id, type, happened_at, notes, created_at
+         FROM well_events
+         ORDER BY happened_at DESC
+         LIMIT ? OFFSET ?`
+      )
+      .bind(pageSize, offset)
+      .all();
+
+    const total = totalResult?.total ?? 0;
+    const items = rowsResult.results;
+
+    return c.json({
+      ok: true,
+      data: {
+        items,
+        pagination: {
+          page,
+          pageSize,
+          total,
+          totalPages: total === 0 ? 0 : Math.ceil(total / pageSize)
+        }
+      }
+    });
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while listing well events",
           details: error instanceof Error ? error.message : String(error)
         }
       },
