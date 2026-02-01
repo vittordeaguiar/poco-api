@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { MiddlewareHandler } from "hono";
 import { z } from "zod";
+import { normalizePhone } from "./lib/phone";
 
 type Env = {
   poco_db: D1Database;
@@ -49,6 +50,13 @@ const houseQuickSchema = z
         phone: z.string().trim().min(1).optional()
       })
       .optional()
+  })
+  .strict();
+
+const assignResponsibleSchema = z
+  .object({
+    name: z.string().trim().min(1),
+    phone: z.string().trim().min(1).optional()
   })
   .strict();
 
@@ -211,6 +219,46 @@ const csvResponse = (filename: string, csv: string) => ({
   "Content-Type": "text/csv; charset=utf-8",
   "Content-Disposition": `attachment; filename="${filename}"`
 });
+
+const findPersonByPhone = async (db: D1Database, phone: string) => {
+  const normalized = normalizePhone(phone);
+  if (!normalized) {
+    return null;
+  }
+  return db
+    .prepare(
+      `SELECT id, name, phone
+       FROM people
+       WHERE phone IS NOT NULL
+         AND REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '(', ''), ')', ''), '+', '') = ?
+       LIMIT 1`
+    )
+    .bind(normalized)
+    .first<{ id: string; name: string; phone: string }>();
+};
+
+const findPeopleByName = async (db: D1Database, name: string) => {
+  const query = name.trim();
+  if (!query) {
+    return [];
+  }
+  const result = await db
+    .prepare(
+      `SELECT id, name, phone
+       FROM people
+       WHERE name LIKE ?
+       ORDER BY name
+       LIMIT 5`
+    )
+    .bind(`%${query}%`)
+    .all();
+
+  return result.results.map((row) => ({
+    id: row.id as string,
+    name: row.name as string,
+    phone: row.phone as string | null
+  }));
+};
 
 app.post("/auth/login", async (c) => {
   let payload: unknown;
@@ -875,6 +923,123 @@ app.get("/houses/:id", authGuard, async (c) => {
   }
 });
 
+app.post("/houses/:id/responsible", authGuard, async (c) => {
+  const houseId = c.req.param("id").trim();
+  if (!houseId) {
+    return c.json(
+      { ok: false, error: { message: "House id is required" } },
+      400
+    );
+  }
+
+  let payload: unknown;
+  try {
+    payload = await c.req.json();
+  } catch {
+    return c.json(
+      { ok: false, error: { message: "Invalid JSON body" } },
+      400
+    );
+  }
+
+  const parsed = assignResponsibleSchema.safeParse(payload);
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid request body",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const house = await c.env.poco_db
+    .prepare("SELECT id FROM houses WHERE id = ?")
+    .bind(houseId)
+    .first<{ id: string }>();
+
+  if (!house) {
+    return c.json(
+      { ok: false, error: { message: "House not found" } },
+      404
+    );
+  }
+
+  const { name, phone } = parsed.data;
+  let personId: string | null = null;
+  let reusedPerson = false;
+  let suggestions: Array<{ id: string; name: string; phone: string | null }> =
+    [];
+
+  if (phone) {
+    const existing = await findPersonByPhone(c.env.poco_db, phone);
+    if (existing) {
+      personId = existing.id;
+      reusedPerson = true;
+    }
+  } else {
+    suggestions = await findPeopleByName(c.env.poco_db, name);
+  }
+
+  if (!personId) {
+    personId = crypto.randomUUID();
+  }
+
+  const now = new Date().toISOString();
+  const statements = [];
+
+  if (!reusedPerson && personId) {
+    const normalizedPhone = normalizePhone(phone);
+    statements.push(
+      c.env.poco_db.prepare(
+        "INSERT INTO people (id, name, phone) VALUES (?, ?, ?)"
+      ).bind(personId, name, normalizedPhone)
+    );
+  }
+
+  statements.push(
+    c.env.poco_db.prepare(
+      "UPDATE house_responsibilities SET end_at = ? WHERE house_id = ? AND end_at IS NULL"
+    ).bind(now, houseId)
+  );
+
+  const responsibilityId = crypto.randomUUID();
+  statements.push(
+    c.env.poco_db.prepare(
+      "INSERT INTO house_responsibilities (id, house_id, person_id, start_at, end_at) VALUES (?, ?, ?, ?, NULL)"
+    ).bind(responsibilityId, houseId, personId, now)
+  );
+
+  try {
+    await c.env.poco_db.batch(statements);
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while assigning responsible",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+
+  const data: Record<string, unknown> = {
+    house_id: houseId,
+    person_id: personId,
+    reused_person: reusedPerson
+  };
+  if (suggestions.length) {
+    data.suggestions = suggestions;
+  }
+
+  return c.json({ ok: true, data });
+});
+
 app.post("/houses/quick", authGuard, async (c) => {
   let payload: unknown;
   try {
@@ -916,6 +1081,26 @@ app.post("/houses/quick", authGuard, async (c) => {
 
   const now = new Date().toISOString();
   const houseId = crypto.randomUUID();
+  let personId: string | null = null;
+  let reusedPerson = false;
+  let suggestions: Array<{ id: string; name: string; phone: string | null }> =
+    [];
+
+  if (responsible) {
+    if (responsible.phone) {
+      const existing = await findPersonByPhone(c.env.poco_db, responsible.phone);
+      if (existing) {
+        personId = existing.id;
+        reusedPerson = true;
+      }
+    } else {
+      suggestions = await findPeopleByName(c.env.poco_db, responsible.name);
+    }
+
+    if (!personId) {
+      personId = crypto.randomUUID();
+    }
+  }
 
   const statements = [
     c.env.poco_db.prepare(
@@ -932,13 +1117,15 @@ app.post("/houses/quick", authGuard, async (c) => {
     )
   ];
 
-  if (responsible) {
-    const personId = crypto.randomUUID();
-    statements.push(
-      c.env.poco_db.prepare(
-        "INSERT INTO people (id, name, phone) VALUES (?, ?, ?)"
-      ).bind(personId, responsible.name, responsible.phone ?? null)
-    );
+  if (responsible && personId) {
+    if (!reusedPerson) {
+      const normalizedPhone = normalizePhone(responsible.phone);
+      statements.push(
+        c.env.poco_db.prepare(
+          "INSERT INTO people (id, name, phone) VALUES (?, ?, ?)"
+        ).bind(personId, responsible.name, normalizedPhone)
+      );
+    }
 
     statements.push(
       c.env.poco_db.prepare(
@@ -969,7 +1156,16 @@ app.post("/houses/quick", authGuard, async (c) => {
     );
   }
 
-  return c.json({ ok: true, data: { house_id: houseId } });
+  const data: Record<string, unknown> = { house_id: houseId };
+  if (personId) {
+    data.person_id = personId;
+    data.reused_person = reusedPerson;
+  }
+  if (suggestions.length) {
+    data.suggestions = suggestions;
+  }
+
+  return c.json({ ok: true, data });
 });
 
 app.post("/invoices/generate", authGuard, async (c) => {
