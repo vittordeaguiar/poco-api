@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiFetch } from "../lib/api";
+import { apiDownload, apiFetch } from "../lib/api";
 import { formatCurrency, formatPeriod } from "../lib/format";
 
 type LateItem = {
@@ -61,9 +61,23 @@ export const LatePage = () => {
 
   return (
     <section className="stack">
-      <div>
-        <h2>Casas em atraso</h2>
-        <p className="muted">Lista de pendências até este mês.</p>
+      <div className="section-header">
+        <div>
+          <h2>Casas em atraso</h2>
+          <p className="muted">Lista de pendências até este mês.</p>
+        </div>
+        <button
+          className="ghost"
+          type="button"
+          onClick={() =>
+            apiDownload(
+              "/export/late.csv",
+              `late-${as_of_year}-${String(as_of_month).padStart(2, "0")}.csv`
+            )
+          }
+        >
+          Exportar CSV
+        </button>
       </div>
 
       {isLoading ? (

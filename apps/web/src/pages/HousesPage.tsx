@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiFetch } from "../lib/api";
+import { apiDownload, apiFetch } from "../lib/api";
 
 const defaultMonthlyAmount = "90";
 const quadraStorageKey = "poco_quadra";
@@ -236,9 +236,18 @@ export const HousesPage = () => {
           <h2>Casas</h2>
           <p className="muted">Busca rápida e status das casas</p>
         </div>
-        <button className="primary" onClick={() => setIsModalOpen(true)}>
-          + Nova casa
-        </button>
+        <div className="header-actions">
+          <button
+            className="ghost"
+            type="button"
+            onClick={() => apiDownload("/export/houses.csv", "houses.csv")}
+          >
+            Exportar CSV
+          </button>
+          <button className="primary" onClick={() => setIsModalOpen(true)}>
+            + Nova casa
+          </button>
+        </div>
       </header>
 
       {toast ? <div className="toast">{toast}</div> : null}

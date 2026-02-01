@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiFetch } from "../lib/api";
+import { apiDownload, apiFetch } from "../lib/api";
 import { formatCurrency, formatMonthLabel } from "../lib/format";
 
 type DashboardResponse = {
@@ -39,11 +39,39 @@ export const DashboardPage = () => {
     load();
   }, [year, month]);
 
+  const handleExportInvoices = () => {
+    apiDownload(
+      `/export/invoices.csv?year=${year}&month=${month}`,
+      `invoices-${year}-${String(month).padStart(2, "0")}.csv`
+    );
+  };
+
+  const handleExportPayments = () => {
+    const from = new Date(year, month - 1, 1);
+    const to = new Date(year, month, 0);
+    const fromIso = from.toISOString().slice(0, 10);
+    const toIso = to.toISOString().slice(0, 10);
+    apiDownload(
+      `/export/payments.csv?from=${fromIso}&to=${toIso}`,
+      `payments-${fromIso}-to-${toIso}.csv`
+    );
+  };
+
   return (
     <section className="stack">
-      <div>
-        <h2>Dashboard</h2>
-        <p className="muted">Resumo de {monthLabel}</p>
+      <div className="section-header">
+        <div>
+          <h2>Dashboard</h2>
+          <p className="muted">Resumo de {monthLabel}</p>
+        </div>
+        <div className="header-actions">
+          <button className="ghost" type="button" onClick={handleExportInvoices}>
+            Exportar invoices
+          </button>
+          <button className="ghost" type="button" onClick={handleExportPayments}>
+            Exportar pagamentos
+          </button>
+        </div>
       </div>
 
       {isLoading ? (

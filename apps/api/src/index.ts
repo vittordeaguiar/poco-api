@@ -58,6 +58,30 @@ const authLoginSchema = z
   })
   .strict();
 
+const exportInvoicesSchema = z
+  .object({
+    year: z
+      .string()
+      .transform((value) => Number.parseInt(value, 10))
+      .refine((value) => Number.isFinite(value) && value >= 2000, {
+        message: "year must be >= 2000"
+      }),
+    month: z
+      .string()
+      .transform((value) => Number.parseInt(value, 10))
+      .refine((value) => Number.isFinite(value) && value >= 1 && value <= 12, {
+        message: "month must be between 1 and 12"
+      })
+  })
+  .strict();
+
+const exportPaymentsSchema = z
+  .object({
+    from: z.string().trim().min(1),
+    to: z.string().trim().min(1)
+  })
+  .strict();
+
 const housesQuerySchema = z
   .object({
     search: z.string().trim().min(1).optional(),
@@ -164,6 +188,30 @@ app.get("/health", (c) =>
   })
 );
 
+const csvEscape = (value: unknown) => {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  const str = String(value);
+  if (/[",\n\r]/.test(str)) {
+    return `"${str.replace(/"/g, "\"\"")}"`;
+  }
+  return str;
+};
+
+const buildCsv = (headers: string[], rows: Array<Array<unknown>>) => {
+  const headerLine = headers.map(csvEscape).join(",");
+  const body = rows
+    .map((row) => row.map((cell) => csvEscape(cell)).join(","))
+    .join("\n");
+  return [headerLine, body].filter(Boolean).join("\n");
+};
+
+const csvResponse = (filename: string, csv: string) => ({
+  "Content-Type": "text/csv; charset=utf-8",
+  "Content-Disposition": `attachment; filename="${filename}"`
+});
+
 app.post("/auth/login", async (c) => {
   let payload: unknown;
   try {
@@ -205,6 +253,370 @@ app.post("/auth/login", async (c) => {
   }
 
   return c.json({ ok: true, data: { token: apiKey } });
+});
+
+app.get("/export/houses.csv", authGuard, async (c) => {
+  try {
+    const rows = await c.env.poco_db
+      .prepare(
+        `SELECT
+           h.id,
+           h.street,
+           h.house_number,
+           h.complement,
+           h.cep,
+           h.reference,
+           h.monthly_amount_cents,
+           h.status,
+           h.notes,
+           h.created_at,
+           h.updated_at,
+           p.name AS responsible_name,
+           p.phone AS responsible_phone
+         FROM houses h
+         LEFT JOIN house_responsibilities hr
+           ON hr.house_id = h.id AND hr.end_at IS NULL
+         LEFT JOIN people p ON p.id = hr.person_id
+         ORDER BY h.created_at DESC`
+      )
+      .all();
+
+    const csv = buildCsv(
+      [
+        "id",
+        "street",
+        "house_number",
+        "complement",
+        "cep",
+        "reference",
+        "monthly_amount_cents",
+        "status",
+        "notes",
+        "created_at",
+        "updated_at",
+        "responsible_name",
+        "responsible_phone"
+      ],
+      rows.results.map((row) => [
+        row.id,
+        row.street,
+        row.house_number,
+        row.complement,
+        row.cep,
+        row.reference,
+        row.monthly_amount_cents,
+        row.status,
+        row.notes,
+        row.created_at,
+        row.updated_at,
+        row.responsible_name,
+        row.responsible_phone
+      ])
+    );
+
+    return c.text(csv, 200, csvResponse("houses.csv", csv));
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while exporting houses",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+});
+
+app.get("/export/invoices.csv", authGuard, async (c) => {
+  const parsed = exportInvoicesSchema.safeParse(c.req.query());
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid query parameters",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const { year, month } = parsed.data;
+  try {
+    const rows = await c.env.poco_db
+      .prepare(
+        `SELECT
+           i.id,
+           i.house_id,
+           i.year,
+           i.month,
+           i.amount_cents,
+           i.status,
+           i.due_date,
+           i.paid_at,
+           i.notes,
+           i.created_at,
+           i.updated_at,
+           h.street,
+           h.house_number,
+           h.cep,
+           h.reference
+         FROM invoices i
+         JOIN houses h ON h.id = i.house_id
+         WHERE i.year = ? AND i.month = ?
+         ORDER BY h.street, h.house_number`
+      )
+      .bind(year, month)
+      .all();
+
+    const csv = buildCsv(
+      [
+        "id",
+        "house_id",
+        "year",
+        "month",
+        "amount_cents",
+        "status",
+        "due_date",
+        "paid_at",
+        "notes",
+        "created_at",
+        "updated_at",
+        "street",
+        "house_number",
+        "cep",
+        "reference"
+      ],
+      rows.results.map((row) => [
+        row.id,
+        row.house_id,
+        row.year,
+        row.month,
+        row.amount_cents,
+        row.status,
+        row.due_date,
+        row.paid_at,
+        row.notes,
+        row.created_at,
+        row.updated_at,
+        row.street,
+        row.house_number,
+        row.cep,
+        row.reference
+      ])
+    );
+
+    return c.text(
+      csv,
+      200,
+      csvResponse(`invoices-${year}-${String(month).padStart(2, "0")}.csv`, csv)
+    );
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while exporting invoices",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+});
+
+app.get("/export/payments.csv", authGuard, async (c) => {
+  const parsed = exportPaymentsSchema.safeParse(c.req.query());
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid query parameters",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const { from, to } = parsed.data;
+  try {
+    const rows = await c.env.poco_db
+      .prepare(
+        `SELECT
+           p.id,
+           p.house_id,
+           p.invoice_id,
+           p.amount_cents,
+           p.method,
+           p.paid_at,
+           p.notes,
+           p.created_at,
+           i.year,
+           i.month,
+           h.street,
+           h.house_number
+         FROM payments p
+         LEFT JOIN invoices i ON i.id = p.invoice_id
+         LEFT JOIN houses h ON h.id = p.house_id
+         WHERE p.paid_at >= ? AND p.paid_at <= ?
+         ORDER BY p.paid_at DESC`
+      )
+      .bind(from, to)
+      .all();
+
+    const csv = buildCsv(
+      [
+        "id",
+        "house_id",
+        "invoice_id",
+        "amount_cents",
+        "method",
+        "paid_at",
+        "notes",
+        "created_at",
+        "invoice_year",
+        "invoice_month",
+        "street",
+        "house_number"
+      ],
+      rows.results.map((row) => [
+        row.id,
+        row.house_id,
+        row.invoice_id,
+        row.amount_cents,
+        row.method,
+        row.paid_at,
+        row.notes,
+        row.created_at,
+        row.year,
+        row.month,
+        row.street,
+        row.house_number
+      ])
+    );
+
+    return c.text(
+      csv,
+      200,
+      csvResponse(`payments-${from}-to-${to}.csv`, csv)
+    );
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while exporting payments",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+});
+
+app.get("/export/late.csv", authGuard, async (c) => {
+  const now = new Date();
+  const asOfYear = now.getFullYear();
+  const asOfMonth = now.getMonth() + 1;
+  const asOfKey = asOfYear * 12 + asOfMonth;
+
+  try {
+    const rows = await c.env.poco_db
+      .prepare(
+        `SELECT
+           h.id AS house_id,
+           h.street,
+           h.house_number,
+           h.cep,
+           h.reference,
+           h.status,
+           p.name AS responsible_name,
+           p.phone AS responsible_phone,
+           i.id AS invoice_id,
+           i.year,
+           i.month,
+           i.amount_cents,
+           i.due_date,
+           i.status AS invoice_status
+         FROM invoices i
+         JOIN houses h ON h.id = i.house_id
+         LEFT JOIN house_responsibilities hr
+           ON hr.house_id = h.id AND hr.end_at IS NULL
+         LEFT JOIN people p ON p.id = hr.person_id
+         WHERE i.status = 'open'
+           AND (i.year * 12 + i.month) < ?
+         ORDER BY h.id, i.year DESC, i.month DESC`
+      )
+      .bind(asOfKey)
+      .all();
+
+    const csv = buildCsv(
+      [
+        "as_of_year",
+        "as_of_month",
+        "house_id",
+        "street",
+        "house_number",
+        "cep",
+        "reference",
+        "house_status",
+        "responsible_name",
+        "responsible_phone",
+        "invoice_id",
+        "invoice_year",
+        "invoice_month",
+        "invoice_amount_cents",
+        "invoice_due_date",
+        "invoice_status",
+        "months_late"
+      ],
+      rows.results.map((row) => {
+        const monthKey = row.year * 12 + row.month;
+        const monthsLate = Math.max(asOfKey - monthKey, 0);
+        return [
+          asOfYear,
+          asOfMonth,
+          row.house_id,
+          row.street,
+          row.house_number,
+          row.cep,
+          row.reference,
+          row.status,
+          row.responsible_name,
+          row.responsible_phone,
+          row.invoice_id,
+          row.year,
+          row.month,
+          row.amount_cents,
+          row.due_date,
+          row.invoice_status,
+          monthsLate
+        ];
+      })
+    );
+
+    return c.text(
+      csv,
+      200,
+      csvResponse(`late-${asOfYear}-${String(asOfMonth).padStart(2, "0")}.csv`, csv)
+    );
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while exporting late list",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
 });
 
 app.get("/houses", authGuard, async (c) => {
