@@ -73,6 +73,22 @@ const housesQuerySchema = z
   })
   .strict();
 
+const generateInvoicesSchema = z
+  .object({
+    year: z.number().int().min(2000),
+    month: z.number().int().min(1).max(12),
+    include_pending: z.boolean().optional()
+  })
+  .strict();
+
+const payInvoiceSchema = z
+  .object({
+    method: z.enum(["cash", "pix", "transfer", "other"]),
+    paid_at: z.string().trim().min(1).optional(),
+    notes: z.string().trim().min(1).optional()
+  })
+  .strict();
+
 app.get("/health", (c) =>
   c.json({
     ok: true,
@@ -431,6 +447,264 @@ app.post("/houses/quick", authGuard, async (c) => {
   }
 
   return c.json({ ok: true, data: { house_id: houseId } });
+});
+
+app.post("/invoices/generate", authGuard, async (c) => {
+  let payload: unknown;
+  try {
+    payload = await c.req.json();
+  } catch {
+    return c.json(
+      { ok: false, error: { message: "Invalid JSON body" } },
+      400
+    );
+  }
+
+  const parsed = generateInvoicesSchema.safeParse(payload);
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid request body",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const { year, month, include_pending } = parsed.data;
+  const eligibleStatuses = include_pending ? ["active", "pending"] : ["active"];
+
+  try {
+    const eligibleCountResult = await c.env.poco_db
+      .prepare(
+        `SELECT COUNT(*) AS total
+         FROM houses
+         WHERE status IN (${eligibleStatuses.map(() => "?").join(", ")})`
+      )
+      .bind(...eligibleStatuses)
+      .first<{ total: number }>();
+
+    const eligibleTotal = eligibleCountResult?.total ?? 0;
+
+    const existingCountResult = await c.env.poco_db
+      .prepare(
+        `SELECT COUNT(*) AS total
+         FROM invoices i
+         JOIN houses h ON h.id = i.house_id
+         WHERE i.year = ? AND i.month = ?
+           AND h.status IN (${eligibleStatuses.map(() => "?").join(", ")})`
+      )
+      .bind(year, month, ...eligibleStatuses)
+      .first<{ total: number }>();
+
+    const existingTotal = existingCountResult?.total ?? 0;
+
+    await c.env.poco_db
+      .prepare(
+        `INSERT OR IGNORE INTO invoices (
+           id,
+           house_id,
+           year,
+           month,
+           amount_cents,
+           status,
+           created_at,
+           updated_at
+         )
+         SELECT
+           lower(hex(randomblob(16))),
+           h.id,
+           ?,
+           ?,
+           h.monthly_amount_cents,
+           'open',
+           strftime('%Y-%m-%dT%H:%M:%SZ', 'now'),
+           strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+         FROM houses h
+         WHERE h.status IN (${eligibleStatuses.map(() => "?").join(", ")})`
+      )
+      .bind(year, month, ...eligibleStatuses)
+      .run();
+
+    const afterCountResult = await c.env.poco_db
+      .prepare(
+        `SELECT COUNT(*) AS total
+         FROM invoices i
+         JOIN houses h ON h.id = i.house_id
+         WHERE i.year = ? AND i.month = ?
+           AND h.status IN (${eligibleStatuses.map(() => "?").join(", ")})`
+      )
+      .bind(year, month, ...eligibleStatuses)
+      .first<{ total: number }>();
+
+    const afterTotal = afterCountResult?.total ?? 0;
+    const created = Math.max(afterTotal - existingTotal, 0);
+    const skippedExisting = Math.max(eligibleTotal - created, 0);
+
+    return c.json({
+      ok: true,
+      data: {
+        created,
+        skipped_existing: skippedExisting
+      }
+    });
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while generating invoices",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+});
+
+app.post("/invoices/:id/pay", authGuard, async (c) => {
+  const invoiceId = c.req.param("id").trim();
+  if (!invoiceId) {
+    return c.json(
+      { ok: false, error: { message: "Invoice id is required" } },
+      400
+    );
+  }
+
+  let payload: unknown;
+  try {
+    payload = await c.req.json();
+  } catch {
+    return c.json(
+      { ok: false, error: { message: "Invalid JSON body" } },
+      400
+    );
+  }
+
+  const parsed = payInvoiceSchema.safeParse(payload);
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid request body",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const { method, paid_at, notes } = parsed.data;
+
+  try {
+    const invoice = await c.env.poco_db
+      .prepare(
+        `SELECT id, house_id, status
+         FROM invoices
+         WHERE id = ?`
+      )
+      .bind(invoiceId)
+      .first<{ id: string; house_id: string; status: string }>();
+
+    if (!invoice) {
+      return c.json(
+        { ok: false, error: { message: "Invoice not found" } },
+        404
+      );
+    }
+
+    if (invoice.status === "paid") {
+      return c.json(
+        {
+          ok: false,
+          error: { message: "Invoice already paid", code: "ALREADY_PAID" }
+        },
+        409
+      );
+    }
+
+    if (invoice.status !== "open") {
+      return c.json(
+        { ok: false, error: { message: "Invoice cannot be paid" } },
+        409
+      );
+    }
+
+    const now = new Date().toISOString();
+    const paidAtValue = paid_at ?? now;
+    const paymentId = crypto.randomUUID();
+
+    const insertPayment = c.env.poco_db
+      .prepare(
+        `INSERT INTO payments (
+           id,
+           house_id,
+           invoice_id,
+           amount_cents,
+           method,
+           paid_at,
+           notes
+         )
+         SELECT
+           ?,
+           house_id,
+           id,
+           amount_cents,
+           ?,
+           ?,
+           ?
+         FROM invoices
+         WHERE id = ?`
+      )
+      .bind(paymentId, method, paidAtValue, notes ?? null, invoiceId);
+
+    const updateInvoice = c.env.poco_db
+      .prepare(
+        `UPDATE invoices
+         SET status = 'paid',
+             paid_at = ?,
+             updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+         WHERE id = ? AND status = 'open'`
+      )
+      .bind(paidAtValue, invoiceId);
+
+    await c.env.poco_db.batch([insertPayment, updateInvoice]);
+
+    const updated = await c.env.poco_db
+      .prepare(`SELECT status FROM invoices WHERE id = ?`)
+      .bind(invoiceId)
+      .first<{ status: string }>();
+
+    if (updated?.status !== "paid") {
+      return c.json(
+        {
+          ok: false,
+          error: { message: "Failed to mark invoice as paid" }
+        },
+        409
+      );
+    }
+
+    return c.json({
+      ok: true,
+      data: { invoice_id: invoiceId, payment_id: paymentId }
+    });
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while paying invoice",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
 });
 
 export default app;
