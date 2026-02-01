@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { clearToken } from "../lib/auth";
 import { getQueueCount, subscribeQueue } from "../lib/offlineQueue";
+import { ThemeToggle } from "./ThemeToggle";
 
 const navItems = [
   { to: "/", label: "Dashboard" },
   { to: "/houses", label: "Casas" },
   { to: "/pending", label: "Pendências" },
+  { to: "/audit", label: "Audit" },
   { to: "/sync", label: "Sync" },
   { to: "/late", label: "Atrasos" },
   { to: "/well", label: "Poço" }
@@ -38,9 +40,12 @@ export const AppLayout = () => {
           <p className="eyebrow">poco</p>
           <h1>Painel</h1>
         </div>
-        <button className="link button-link" onClick={handleLogout}>
-          Sair
-        </button>
+        <div className="topbar-actions">
+          <ThemeToggle compact />
+          <button className="link button-link" onClick={handleLogout}>
+            Sair
+          </button>
+        </div>
       </header>
 
       <main className="content">

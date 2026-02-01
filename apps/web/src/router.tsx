@@ -9,6 +9,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { PendingPage } from "./pages/PendingPage";
 import { SyncPage } from "./pages/SyncPage";
+import { AuditPage } from "./pages/AuditPage";
 import { redirectIfAuthenticated, requireAuth } from "./lib/auth";
 
 export const router = createBrowserRouter([
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
       { path: "houses", element: <HousesPage /> },
       { path: "houses/:id", element: <HouseDetailPage /> },
       { path: "pending", element: <PendingPage /> },
+      { path: "audit", element: <AuditPage /> },
       { path: "sync", element: <SyncPage /> },
       { path: "late", element: <LatePage /> },
       { path: "well", element: <WellPage /> }

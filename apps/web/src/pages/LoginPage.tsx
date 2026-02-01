@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { setToken } from "../lib/auth";
+import { ThemeToggle } from "../ui/ThemeToggle";
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -52,6 +53,9 @@ export const LoginPage = () => {
 
   return (
     <div className="auth">
+      <div className="auth-header">
+        <ThemeToggle />
+      </div>
       <form className="auth-card" onSubmit={handleSubmit}>
         <p className="eyebrow">poco</p>
         <h2>Entrar</h2>

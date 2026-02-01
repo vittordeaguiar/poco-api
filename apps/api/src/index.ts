@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import type { MiddlewareHandler } from "hono";
+import { cors } from "hono/cors";
 import { z } from "zod";
 import { normalizePhone } from "./lib/phone";
 
@@ -7,9 +8,33 @@ type Env = {
   poco_db: D1Database;
   API_KEY?: string;
   DEFAULT_AMOUNT_CENTS?: string;
+  CORS_ORIGINS?: string;
 };
 
 const app = new Hono<{ Bindings: Env }>();
+
+app.use(
+  "*",
+  cors({
+    origin: (origin, c) => {
+      const defaultOrigins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+      ];
+      const configured =
+        c.env.CORS_ORIGINS?.split(",").map((value) => value.trim()) ?? [];
+      const allowed = configured.filter(Boolean);
+      const whitelist = allowed.length ? allowed : defaultOrigins;
+
+      if (!origin) {
+        return "";
+      }
+      return whitelist.includes(origin) ? origin : "";
+    },
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"]
+  })
+);
 
 const authGuard: MiddlewareHandler<{ Bindings: Env }> = async (c, next) => {
   const apiKey = c.env.API_KEY?.trim();
@@ -63,6 +88,18 @@ const assignResponsibleSchema = z
 const authLoginSchema = z
   .object({
     password: z.string().trim().min(1)
+  })
+  .strict();
+
+const auditQuerySchema = z
+  .object({
+    limit: z
+      .string()
+      .transform((value) => Number.parseInt(value, 10))
+      .refine((value) => Number.isFinite(value) && value >= 1, {
+        message: "limit must be >= 1"
+      })
+      .optional()
   })
   .strict();
 
@@ -219,6 +256,21 @@ const csvResponse = (filename: string, csv: string) => ({
   "Content-Type": "text/csv; charset=utf-8",
   "Content-Disposition": `attachment; filename="${filename}"`
 });
+
+const createAuditStatement = (
+  db: D1Database,
+  action: string,
+  entity: string,
+  entityId: string,
+  summary: Record<string, unknown>
+) => {
+  const summaryJson = JSON.stringify(summary ?? {});
+  return db
+    .prepare(
+      "INSERT INTO audit_log (id, action, entity, entity_id, summary_json) VALUES (?, ?, ?, ?, ?)"
+    )
+    .bind(crypto.randomUUID(), action, entity, entityId, summaryJson);
+};
 
 const findPersonByPhone = async (db: D1Database, phone: string) => {
   const normalized = normalizePhone(phone);
@@ -667,6 +719,68 @@ app.get("/export/late.csv", authGuard, async (c) => {
   }
 });
 
+app.get("/audit", authGuard, async (c) => {
+  const parsed = auditQuerySchema.safeParse(c.req.query());
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid query parameters",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const limitRaw = parsed.data.limit ?? 50;
+  const limit = Math.min(limitRaw, 200);
+
+  try {
+    const rows = await c.env.poco_db
+      .prepare(
+        `SELECT id, action, entity, entity_id, summary_json, created_at
+         FROM audit_log
+         ORDER BY created_at DESC
+         LIMIT ?`
+      )
+      .bind(limit)
+      .all();
+
+    const items = rows.results.map((row) => {
+      let summary: unknown = row.summary_json;
+      try {
+        summary = JSON.parse(row.summary_json as string);
+      } catch {
+        summary = row.summary_json;
+      }
+
+      return {
+        id: row.id,
+        action: row.action,
+        entity: row.entity,
+        entity_id: row.entity_id,
+        summary,
+        created_at: row.created_at
+      };
+    });
+
+    return c.json({ ok: true, data: { items } });
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while loading audit log",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+});
+
 app.get("/houses", authGuard, async (c) => {
   const parsed = housesQuerySchema.safeParse(c.req.query());
   if (!parsed.success) {
@@ -1093,6 +1207,21 @@ app.post("/houses/:id/responsible", authGuard, async (c) => {
     ).bind(responsibilityId, houseId, personId, now)
   );
 
+  statements.push(
+    createAuditStatement(
+      c.env.poco_db,
+      "set_responsible",
+      "house",
+      houseId,
+      {
+        person_id: personId,
+        name,
+        phone: normalizePhone(phone),
+        reused_person: reusedPerson
+      }
+    )
+  );
+
   try {
     await c.env.poco_db.batch(statements);
   } catch (error) {
@@ -1221,6 +1350,18 @@ app.post("/houses/quick", authGuard, async (c) => {
     );
   }
 
+  statements.push(
+    createAuditStatement(c.env.poco_db, "create_house", "house", houseId, {
+      street: house.street ?? null,
+      house_number: house.house_number ?? null,
+      status,
+      monthly_amount_cents: monthlyAmount,
+      responsible_name: responsible?.name ?? null,
+      responsible_phone: normalizePhone(responsible?.phone) ?? null,
+      person_id: personId
+    })
+  );
+
   try {
     await c.env.poco_db.batch(statements);
   } catch (error) {
@@ -1342,6 +1483,20 @@ app.post("/invoices/generate", authGuard, async (c) => {
     const afterTotal = afterCountResult?.total ?? 0;
     const created = Math.max(afterTotal - existingTotal, 0);
     const skippedExisting = Math.max(eligibleTotal - created, 0);
+
+    await createAuditStatement(
+      c.env.poco_db,
+      "generate_invoices",
+      "invoices",
+      `${year}-${String(month).padStart(2, "0")}`,
+      {
+        year,
+        month,
+        include_pending: include_pending ?? false,
+        created,
+        skipped_existing: skippedExisting
+      }
+    ).run();
 
     return c.json({
       ok: true,
@@ -1471,7 +1626,20 @@ app.post("/invoices/:id/pay", authGuard, async (c) => {
       )
       .bind(paidAtValue, invoiceId);
 
-    await c.env.poco_db.batch([insertPayment, updateInvoice]);
+    const auditStatement = createAuditStatement(
+      c.env.poco_db,
+      "pay_invoice",
+      "invoice",
+      invoiceId,
+      {
+        payment_id: paymentId,
+        method,
+        paid_at: paidAtValue,
+        notes: notes ?? null
+      }
+    );
+
+    await c.env.poco_db.batch([insertPayment, updateInvoice, auditStatement]);
 
     const updated = await c.env.poco_db
       .prepare(`SELECT status FROM invoices WHERE id = ?`)
