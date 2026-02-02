@@ -7,9 +7,17 @@ type ModalProps = {
   eyebrow?: string;
   onClose?: () => void;
   children: ReactNode;
+  footer?: ReactNode;
 };
 
-export const Modal = ({ isOpen, title, eyebrow, onClose, children }: ModalProps) => {
+export const Modal = ({
+  isOpen,
+  title,
+  eyebrow,
+  onClose,
+  children,
+  footer,
+}: ModalProps) => {
   const titleId = useId();
 
   if (!isOpen) {
@@ -24,14 +32,14 @@ export const Modal = ({ isOpen, title, eyebrow, onClose, children }: ModalProps)
 
   return (
     <div
-      className="fixed inset-0 z-10 flex items-end justify-center bg-black/50 p-6 debug"
+      className="fixed inset-0 z-10 flex items-center justify-center bg-black/50 p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
       onClick={handleBackdropClick}
     >
-      <div className="w-1/2 max-h-[70vh] overflow-y-auto rounded-modal border border-border bg-bg-strong p-6 shadow-card debug">
-        <div className="mb-4 flex items-center justify-between gap-4">
+      <div className="flex max-h-[70vh] w-1/2 flex-col overflow-hidden rounded-modal border border-border bg-bg-strong shadow-card">
+        <div className="flex items-center justify-between gap-4 px-6 pb-4 pt-6">
           <div>
             {eyebrow ? (
               <p className="text-[0.62rem] font-semibold uppercase tracking-[0.28em] text-muted">
@@ -51,7 +59,12 @@ export const Modal = ({ isOpen, title, eyebrow, onClose, children }: ModalProps)
             </button>
           ) : null}
         </div>
-        {children}
+        <div className="flex-1 overflow-y-auto px-6 pb-6">{children}</div>
+        {footer ? (
+          <div className="border-t border-border bg-bg-strong px-6 py-4">
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>
   );

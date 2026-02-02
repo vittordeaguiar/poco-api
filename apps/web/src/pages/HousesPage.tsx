@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiDownload, apiFetch } from "../lib/api";
 import { addToQueue, getQueueCount, isNetworkError } from "../lib/offlineQueue";
@@ -29,6 +29,7 @@ type AddressSnapshot = {
 };
 
 export const HousesPage = () => {
+  const formId = useId();
   const [houses, setHouses] = useState<HouseListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -315,8 +316,20 @@ export const HousesPage = () => {
         title="Nova casa"
         eyebrow="Cadastro rápido"
         onClose={() => setIsModalOpen(false)}
+        footer={
+          <div className="flex justify-end">
+            <button
+              className="rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+              type="submit"
+              form={formId}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Salvando..." : "Salvar"}
+            </button>
+          </div>
+        }
       >
-        <form className="grid gap-4" onSubmit={handleSubmit}>
+        <form className="grid gap-4" id={formId} onSubmit={handleSubmit}>
           <div className="grid gap-2 text-sm">
             <span>Rua</span>
             <input
@@ -442,16 +455,6 @@ export const HousesPage = () => {
           ) : null}
 
           {formError ? <p className="text-sm text-danger">{formError}</p> : null}
-
-          <div className="flex justify-end">
-            <button
-              className="rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Salvando..." : "Salvar"}
-            </button>
-          </div>
         </form>
       </Modal>
     </section>
