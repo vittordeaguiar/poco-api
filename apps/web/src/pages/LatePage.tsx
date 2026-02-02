@@ -86,19 +86,19 @@ export const LatePage = () => {
       </div>
 
       {isLoading ? (
-        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+        <div className="rounded-card surface-panel p-5">
           <p className="text-sm text-muted">Carregando lista...</p>
         </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+        <div className="rounded-card surface-panel p-5">
           <p className="text-sm text-danger">{error}</p>
         </div>
       ) : null}
 
       {!isLoading && !error && items.length === 0 ? (
-        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+        <div className="rounded-card surface-panel p-5">
           <p className="text-sm text-muted">Nenhuma casa em atraso por enquanto.</p>
         </div>
       ) : null}
@@ -106,7 +106,7 @@ export const LatePage = () => {
       {!isLoading && !error
         ? items.map((item) => (
             <div
-              className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card"
+              className="grid gap-4 rounded-card surface-panel p-5"
               key={item.house.id}
             >
               <div className="flex items-start justify-between gap-4">

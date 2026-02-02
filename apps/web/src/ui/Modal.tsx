@@ -39,7 +39,7 @@ export const Modal = ({
       aria-labelledby={titleId}
       onClick={handleBackdropClick}
     >
-      <div className="flex max-h-[70vh] w-1/2 flex-col overflow-hidden rounded-modal border border-border bg-bg-strong shadow-card">
+      <div className="flex max-h-[70vh] w-1/2 flex-col overflow-hidden rounded-modal surface-panel">
         <div className="flex items-center justify-between gap-4 px-6 pb-4 pt-6">
           <div>
             {eyebrow ? (

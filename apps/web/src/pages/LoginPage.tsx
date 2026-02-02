@@ -58,7 +58,7 @@ export const LoginPage = () => {
         <ThemeToggle />
       </div>
       <form
-        className="grid w-full max-w-[360px] gap-2 rounded-modal border border-border bg-bg-strong p-8 shadow-card"
+        className="grid w-full max-w-[360px] gap-2 rounded-modal surface-panel p-8"
         onSubmit={handleSubmit}
       >
         <p className="text-[0.62rem] font-semibold uppercase tracking-[0.28em] text-muted">

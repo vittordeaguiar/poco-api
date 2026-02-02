@@ -179,20 +179,20 @@ export const HouseDetailPage = () => {
       ) : null}
 
       {isLoading ? (
-        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+        <div className="rounded-card surface-panel p-5">
           <p className="text-sm text-muted">Carregando...</p>
         </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+        <div className="rounded-card surface-panel p-5">
           <p className="text-sm text-danger">{error}</p>
         </div>
       ) : null}
 
       {data ? (
         <>
-          <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <div className="rounded-card surface-panel p-5">
             <p className="inline-flex items-center gap-2 text-sm text-muted">
               <ClipboardList className="h-4 w-4 text-accent" />
               Informações principais
@@ -229,7 +229,7 @@ export const HouseDetailPage = () => {
             </div>
           </div>
 
-          <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <div className="rounded-card surface-panel p-5">
             <p className="inline-flex items-center gap-2 text-sm text-muted">
               <User className="h-4 w-4 text-accent" />
               Responsável atual
@@ -254,7 +254,7 @@ export const HouseDetailPage = () => {
             )}
           </div>
 
-          <div className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <div className="grid gap-4 rounded-card surface-panel p-5">
             <p className="inline-flex items-center gap-2 text-sm text-muted">
               <Receipt className="h-4 w-4 text-accent" />
               Últimas invoices
@@ -335,7 +335,7 @@ export const HouseDetailPage = () => {
             )}
           </div>
 
-          <div className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <div className="grid gap-4 rounded-card surface-panel p-5">
             <p className="inline-flex items-center gap-2 text-sm text-muted">
               <Users className="h-4 w-4 text-accent" />
               Histórico de responsáveis

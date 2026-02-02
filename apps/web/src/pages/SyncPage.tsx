@@ -109,7 +109,7 @@ export const SyncPage = () => {
         </div>
       ) : null}
 
-      <div className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card">
+      <div className="grid gap-4 rounded-card surface-panel p-5">
         <div className="flex items-center justify-between gap-4">
           <strong className="inline-flex items-center gap-2 text-sm font-semibold">
             <ListChecks className="h-4 w-4 text-accent" />
@@ -129,14 +129,14 @@ export const SyncPage = () => {
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+        <div className="rounded-card surface-panel p-5">
           <p className="text-sm text-muted">Nenhum item pendente.</p>
         </div>
       ) : (
         <div className="grid gap-4">
           {summary.map((item) => (
             <div
-              className="rounded-card border border-border bg-bg-strong p-5 shadow-card"
+              className="rounded-card surface-panel p-5"
               key={item.id}
             >
               <strong className="text-sm font-semibold">{item.address}</strong>

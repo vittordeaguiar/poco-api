@@ -150,7 +150,7 @@ export const PendingPage = () => {
         </div>
       ) : null}
 
-      <div className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card">
+      <div className="grid gap-4 rounded-card surface-panel p-5">
         <label className="grid gap-2 text-sm">
           <span className="inline-flex items-center gap-2">
             <Search className="h-4 w-4 text-accent" />
@@ -189,19 +189,19 @@ export const PendingPage = () => {
       </div>
 
       {isLoading ? (
-        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+        <div className="rounded-card surface-panel p-5">
           <p className="text-sm text-muted">Carregando pendências...</p>
         </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+        <div className="rounded-card surface-panel p-5">
           <p className="text-sm text-danger">{error}</p>
         </div>
       ) : null}
 
       {!isLoading && !error && filteredItems.length === 0 ? (
-        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+        <div className="rounded-card surface-panel p-5">
           <p className="text-sm text-muted">Nenhuma pendência encontrada.</p>
         </div>
       ) : null}
@@ -209,7 +209,7 @@ export const PendingPage = () => {
       {!isLoading && !error
         ? filteredItems.map((item) => (
             <div
-              className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card"
+              className="grid gap-4 rounded-card surface-panel p-5"
               key={item.id}
             >
               <div className="flex items-start justify-between gap-4">

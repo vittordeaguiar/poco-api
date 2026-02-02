@@ -7,7 +7,7 @@ export const WellPage = () => {
         <Droplets className="h-5 w-5 text-accent" />
         Eventos do poço
       </h2>
-      <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+      <div className="rounded-card surface-panel p-5">
         <p className="inline-flex items-center gap-2 text-sm text-muted">
           <Sparkles className="h-4 w-4 text-accent" />
           Sem eventos recentes.

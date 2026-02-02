@@ -89,32 +89,32 @@ export const DashboardPage = () => {
       </div>
 
       {isLoading ? (
-        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+        <div className="rounded-card surface-panel p-5">
           <p className="text-sm text-muted">Carregando dados...</p>
         </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+        <div className="rounded-card surface-panel p-5">
           <p className="text-sm text-danger">{error}</p>
         </div>
       ) : null}
 
       {data ? (
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <div className="rounded-card surface-panel p-5">
             <span className="text-xs text-muted">Recebido</span>
             <strong className="mt-1 block text-lg font-semibold">
               {formatCurrency(data.received_cents)}
             </strong>
           </div>
-          <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <div className="rounded-card surface-panel p-5">
             <span className="text-xs text-muted">Em aberto</span>
             <strong className="mt-1 block text-lg font-semibold">
               {formatCurrency(data.open_cents)}
             </strong>
           </div>
-          <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <div className="rounded-card surface-panel p-5">
             <span className="text-xs text-muted">Casas em atraso</span>
             <strong className="mt-1 block text-lg font-semibold">
               {data.houses_late_count}

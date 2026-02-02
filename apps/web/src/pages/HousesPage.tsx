@@ -293,7 +293,7 @@ export const HousesPage = () => {
         </div>
       ) : null}
 
-      <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+      <div className="rounded-card surface-panel p-5">
         {isLoading ? <p className="text-sm text-muted">Carregando...</p> : null}
         {loadError ? <p className="text-sm text-danger">{loadError}</p> : null}
         {!isLoading && !loadError && houses.length === 0 ? (
