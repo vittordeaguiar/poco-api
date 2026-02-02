@@ -62,19 +62,9 @@ export const Modal = ({
           ) : null}
         </div>
         <div className="flex-1 overflow-y-auto px-5 pb-6 sm:px-6">{children}</div>
-        {footer || onClose ? (
+        {footer ? (
           <div className="border-t border-border bg-bg-strong px-5 py-4 sm:px-6">
             <div className="flex flex-wrap items-center justify-end gap-3">
-              {onClose ? (
-                <button
-                  className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
-                  type="button"
-                  onClick={onClose}
-                >
-                  <X className="h-4 w-4" />
-                  <span className="hidden sm:inline">Cancelar</span>
-                </button>
-              ) : null}
               {footer}
             </div>
           </div>
