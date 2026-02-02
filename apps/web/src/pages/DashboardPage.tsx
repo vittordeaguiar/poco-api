@@ -43,7 +43,7 @@ export const DashboardPage = () => {
   const handleExportInvoices = () => {
     apiDownload(
       `/export/invoices.csv?year=${year}&month=${month}`,
-      `invoices-${year}-${String(month).padStart(2, "0")}.csv`
+      `faturas-${year}-${String(month).padStart(2, "0")}.csv`
     );
   };
 

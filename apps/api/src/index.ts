@@ -78,6 +78,23 @@ const houseQuickSchema = z
   })
   .strict();
 
+const houseUpdateSchema = z
+  .object({
+    house: z
+      .object({
+        street: z.string().trim().optional(),
+        house_number: z.string().trim().optional(),
+        cep: z.string().trim().optional(),
+        reference: z.string().trim().optional(),
+        complement: z.string().trim().optional(),
+        monthly_amount_cents: z.number().int().positive().optional(),
+        status: z.enum(["active", "inactive", "pending"]).optional(),
+        notes: z.string().trim().optional()
+      })
+      .strict()
+  })
+  .strict();
+
 const assignResponsibleSchema = z
   .object({
     name: z.string().trim().min(1),
@@ -1116,6 +1133,261 @@ app.get("/houses/:id", authGuard, async (c) => {
       500
     );
   }
+});
+
+app.put("/houses/:id", authGuard, async (c) => {
+  const houseId = c.req.param("id").trim();
+  if (!houseId) {
+    return c.json(
+      { ok: false, error: { message: "House id is required" } },
+      400
+    );
+  }
+
+  let payload: unknown;
+  try {
+    payload = await c.req.json();
+  } catch {
+    return c.json(
+      { ok: false, error: { message: "Invalid JSON body" } },
+      400
+    );
+  }
+
+  const parsed = houseUpdateSchema.safeParse(payload);
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid request body",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const update = parsed.data.house;
+  if (Object.keys(update).length === 0) {
+    return c.json(
+      { ok: false, error: { message: "No fields provided for update" } },
+      400
+    );
+  }
+
+  const current = await c.env.poco_db
+    .prepare(
+      `SELECT
+         street,
+         house_number,
+         complement,
+         cep,
+         reference,
+         monthly_amount_cents,
+         status,
+         notes
+       FROM houses
+       WHERE id = ?`
+    )
+    .bind(houseId)
+    .first<{
+      street: string | null;
+      house_number: string | null;
+      complement: string | null;
+      cep: string | null;
+      reference: string | null;
+      monthly_amount_cents: number;
+      status: "active" | "inactive" | "pending";
+      notes: string | null;
+    }>();
+
+  if (!current) {
+    return c.json(
+      { ok: false, error: { message: "House not found" } },
+      404
+    );
+  }
+
+  const hasKey = (key: string) =>
+    Object.prototype.hasOwnProperty.call(update, key);
+  const normalizeText = (value: string | undefined) => {
+    const trimmed = value?.trim() ?? "";
+    return trimmed ? trimmed : null;
+  };
+
+  const next = { ...current };
+  if (hasKey("street")) {
+    next.street = normalizeText(update.street);
+  }
+  if (hasKey("house_number")) {
+    next.house_number = normalizeText(update.house_number);
+  }
+  if (hasKey("complement")) {
+    next.complement = normalizeText(update.complement);
+  }
+  if (hasKey("cep")) {
+    next.cep = normalizeText(update.cep);
+  }
+  if (hasKey("reference")) {
+    next.reference = normalizeText(update.reference);
+  }
+  if (hasKey("monthly_amount_cents")) {
+    next.monthly_amount_cents = update.monthly_amount_cents ?? next.monthly_amount_cents;
+  }
+  if (hasKey("status") && update.status) {
+    next.status = update.status;
+  }
+  if (hasKey("notes")) {
+    next.notes = normalizeText(update.notes);
+  }
+
+  const changes: Record<string, { from: unknown; to: unknown }> = {};
+  const trackChange = (key: string, from: unknown, to: unknown) => {
+    if (from !== to) {
+      changes[key] = { from, to };
+    }
+  };
+
+  trackChange("street", current.street, next.street);
+  trackChange("house_number", current.house_number, next.house_number);
+  trackChange("complement", current.complement, next.complement);
+  trackChange("cep", current.cep, next.cep);
+  trackChange("reference", current.reference, next.reference);
+  trackChange(
+    "monthly_amount_cents",
+    current.monthly_amount_cents,
+    next.monthly_amount_cents
+  );
+  trackChange("status", current.status, next.status);
+  trackChange("notes", current.notes, next.notes);
+
+  const now = new Date().toISOString();
+
+  const updateStatement = c.env.poco_db
+    .prepare(
+      `UPDATE houses
+       SET street = ?,
+           house_number = ?,
+           complement = ?,
+           cep = ?,
+           reference = ?,
+           monthly_amount_cents = ?,
+           status = ?,
+           notes = ?,
+           updated_at = ?
+       WHERE id = ?`
+    )
+    .bind(
+      next.street,
+      next.house_number,
+      next.complement,
+      next.cep,
+      next.reference,
+      next.monthly_amount_cents,
+      next.status,
+      next.notes,
+      now,
+      houseId
+    );
+
+  const auditStatement = createAuditStatement(
+    c.env.poco_db,
+    "update_house",
+    "house",
+    houseId,
+    { changes }
+  );
+
+  try {
+    await c.env.poco_db.batch([updateStatement, auditStatement]);
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while updating house",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+
+  return c.json({ ok: true, data: { id: houseId } });
+});
+
+app.delete("/houses/:id", authGuard, async (c) => {
+  const houseId = c.req.param("id").trim();
+  if (!houseId) {
+    return c.json(
+      { ok: false, error: { message: "House id is required" } },
+      400
+    );
+  }
+
+  const house = await c.env.poco_db
+    .prepare(
+      `SELECT
+         id,
+         street,
+         house_number,
+         status,
+         monthly_amount_cents
+       FROM houses
+       WHERE id = ?`
+    )
+    .bind(houseId)
+    .first<{
+      id: string;
+      street: string | null;
+      house_number: string | null;
+      status: string;
+      monthly_amount_cents: number;
+    }>();
+
+  if (!house) {
+    return c.json(
+      { ok: false, error: { message: "House not found" } },
+      404
+    );
+  }
+
+  const statements = [
+    c.env.poco_db
+      .prepare("DELETE FROM payments WHERE house_id = ?")
+      .bind(houseId),
+    c.env.poco_db
+      .prepare("DELETE FROM invoices WHERE house_id = ?")
+      .bind(houseId),
+    c.env.poco_db
+      .prepare("DELETE FROM house_responsibilities WHERE house_id = ?")
+      .bind(houseId),
+    c.env.poco_db.prepare("DELETE FROM houses WHERE id = ?").bind(houseId),
+    createAuditStatement(c.env.poco_db, "delete_house", "house", houseId, {
+      street: house.street,
+      house_number: house.house_number,
+      status: house.status,
+      monthly_amount_cents: house.monthly_amount_cents
+    })
+  ];
+
+  try {
+    await c.env.poco_db.batch(statements);
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while deleting house",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+
+  return c.json({ ok: true, data: { id: houseId } });
 });
 
 app.post("/houses/:id/responsible", authGuard, async (c) => {

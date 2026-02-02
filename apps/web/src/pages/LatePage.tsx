@@ -139,7 +139,7 @@ export const LatePage = () => {
               <div>
                 <p className="inline-flex items-center gap-2 text-xs text-muted">
                   <Receipt className="h-4 w-4 text-accent" />
-                  Invoices em aberto
+                  Faturas em aberto
                 </p>
                 <div className="mt-2 grid gap-3">
                   {item.invoices_open.map((invoice) => (

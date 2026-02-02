@@ -3,14 +3,17 @@ import {
   ClipboardList,
   CreditCard,
   Home,
+  Pencil,
   Receipt,
+  Trash2,
   User,
   Users
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { formatCurrency, formatPeriod } from "../lib/format";
+import { Modal } from "../ui/Modal";
 
 type HouseDetail = {
   id: string;
@@ -63,6 +66,7 @@ const paymentMethods = [
 
 export const HouseDetailPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [data, setData] = useState<HouseResponse["data"] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +74,20 @@ export const HouseDetailPage = () => {
   const [paying, setPaying] = useState<Record<string, boolean>>({});
   const [methods, setMethods] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [editStreet, setEditStreet] = useState("");
+  const [editHouseNumber, setEditHouseNumber] = useState("");
+  const [editComplement, setEditComplement] = useState("");
+  const [editCep, setEditCep] = useState("");
+  const [editReference, setEditReference] = useState("");
+  const [editMonthlyAmount, setEditMonthlyAmount] = useState("");
+  const [editStatus, setEditStatus] =
+    useState<HouseDetail["status"]>("active");
 
   const loadHouse = async () => {
     if (!id) {
@@ -156,6 +174,101 @@ export const HouseDetailPage = () => {
     }
   };
 
+  const houseStatusLabel = (status: HouseDetail["status"]) => {
+    switch (status) {
+      case "active":
+        return "ATIVO";
+      case "inactive":
+        return "INATIVO";
+      case "pending":
+        return "PENDENTE";
+      default:
+        return status.toUpperCase();
+    }
+  };
+
+  const openEditModal = () => {
+    if (!data?.house) {
+      return;
+    }
+    setEditStreet(data.house.street ?? "");
+    setEditHouseNumber(data.house.house_number ?? "");
+    setEditComplement(data.house.complement ?? "");
+    setEditCep(data.house.cep ?? "");
+    setEditReference(data.house.reference ?? "");
+    setEditMonthlyAmount(
+      String((data.house.monthly_amount_cents ?? 0) / 100)
+    );
+    setEditStatus(data.house.status);
+    setEditError(null);
+    setIsEditOpen(true);
+  };
+
+  const handleUpdate = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!id) {
+      return;
+    }
+
+    setEditError(null);
+    const amountValue = Number.parseFloat(
+      editMonthlyAmount.replace(",", ".")
+    );
+    if (!Number.isFinite(amountValue) || amountValue <= 0) {
+      setEditError("Informe uma mensalidade válida.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await apiFetch(`/houses/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          house: {
+            street: editStreet,
+            house_number: editHouseNumber,
+            complement: editComplement,
+            cep: editCep,
+            reference: editReference,
+            monthly_amount_cents: Math.round(amountValue * 100),
+            status: editStatus
+          }
+        })
+      });
+      setToast("Casa atualizada com sucesso.");
+      setIsEditOpen(false);
+      await loadHouse();
+    } catch (err) {
+      setEditError(
+        err instanceof Error ? err.message : "Falha ao atualizar casa."
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id) {
+      return;
+    }
+
+    setDeleteError(null);
+    setIsDeleting(true);
+    try {
+      await apiFetch(`/houses/${id}`, { method: "DELETE" });
+      navigate("/houses");
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : "Falha ao excluir casa."
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <section className="grid gap-5">
       <header className="flex items-start justify-between gap-4">
@@ -166,10 +279,34 @@ export const HouseDetailPage = () => {
           </h2>
           <p className="text-sm text-muted">Detalhes da casa {id}</p>
         </div>
-        <Link className="inline-flex items-center gap-2 text-sm font-semibold text-text" to="/houses">
-          <ArrowLeft className="h-4 w-4" />
-          Voltar
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+            type="button"
+            onClick={openEditModal}
+          >
+            <Pencil className="h-4 w-4" />
+            Editar
+          </button>
+          <button
+            className="inline-flex items-center gap-2 rounded-pill border border-danger/40 bg-bg-strong px-4 py-2 text-sm font-semibold text-danger"
+            type="button"
+            onClick={() => {
+              setDeleteError(null);
+              setIsDeleteOpen(true);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+            Excluir
+          </button>
+          <Link
+            className="inline-flex items-center gap-2 text-sm font-semibold text-text"
+            to="/houses"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </Link>
+        </div>
       </header>
 
       {toast ? (
@@ -211,7 +348,7 @@ export const HouseDetailPage = () => {
                     data.house.status
                   )}`}
                 >
-                  {data.house.status}
+                  {houseStatusLabel(data.house.status)}
                 </span>
               </div>
               <div>
@@ -257,10 +394,10 @@ export const HouseDetailPage = () => {
           <div className="grid gap-4 rounded-card surface-panel p-5">
             <p className="inline-flex items-center gap-2 text-sm text-muted">
               <Receipt className="h-4 w-4 text-accent" />
-              Últimas invoices
+              Últimas faturas
             </p>
             {data.invoices.length === 0 ? (
-              <p className="text-sm text-muted">Nenhuma invoice encontrada.</p>
+              <p className="text-sm text-muted">Nenhuma fatura encontrada.</p>
             ) : (
               data.invoices.map((invoice) => (
                 <div
@@ -365,6 +502,139 @@ export const HouseDetailPage = () => {
           </div>
         </>
       ) : null}
+
+      <Modal
+        isOpen={isEditOpen}
+        title="Editar casa"
+        eyebrow="Atualização"
+        onClose={() => setIsEditOpen(false)}
+        footer={
+          <button
+            className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+            type="submit"
+            form="edit-house-form"
+            disabled={isSaving}
+          >
+            <Pencil className="h-4 w-4" />
+            {isSaving ? "Salvando..." : "Salvar alterações"}
+          </button>
+        }
+      >
+        <form
+          className="grid gap-4"
+          id="edit-house-form"
+          onSubmit={handleUpdate}
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2 text-sm">
+              <span>Rua</span>
+              <input
+                type="text"
+                value={editStreet}
+                onChange={(event) => setEditStreet(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span>Número</span>
+              <input
+                type="text"
+                value={editHouseNumber}
+                onChange={(event) => setEditHouseNumber(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2 text-sm">
+              <span>CEP</span>
+              <input
+                type="text"
+                value={editCep}
+                onChange={(event) => setEditCep(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span>Referência</span>
+              <input
+                type="text"
+                value={editReference}
+                onChange={(event) => setEditReference(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+          </div>
+
+          <label className="grid gap-2 text-sm">
+            <span>Complemento</span>
+            <input
+              type="text"
+              value={editComplement}
+              onChange={(event) => setEditComplement(event.target.value)}
+              className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+            />
+          </label>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2 text-sm">
+              <span>Mensalidade (R$)</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={editMonthlyAmount}
+                onChange={(event) => setEditMonthlyAmount(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span>Status</span>
+              <select
+                value={editStatus}
+                onChange={(event) =>
+                  setEditStatus(event.target.value as HouseDetail["status"])
+                }
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              >
+                <option value="active">Ativo</option>
+                <option value="inactive">Inativo</option>
+                <option value="pending">Pendente</option>
+              </select>
+            </label>
+          </div>
+
+          {editError ? (
+            <p className="text-sm text-danger">{editError}</p>
+          ) : null}
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={isDeleteOpen}
+        title="Excluir casa"
+        eyebrow="Atenção"
+        onClose={() => setIsDeleteOpen(false)}
+        footer={
+          <button
+            className="inline-flex items-center gap-2 rounded-pill bg-danger px-5 py-2 text-sm font-bold text-danger-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            <Trash2 className="h-4 w-4" />
+            {isDeleting ? "Excluindo..." : "Confirmar exclusão"}
+          </button>
+        }
+      >
+        <div className="grid gap-3 text-sm text-muted">
+          <p>Essa ação remove a casa e seus registros vinculados.</p>
+          <p>Não é possível desfazer.</p>
+          {deleteError ? (
+            <p className="text-sm text-danger">{deleteError}</p>
+          ) : null}
+        </div>
+      </Modal>
     </section>
   );
 };
