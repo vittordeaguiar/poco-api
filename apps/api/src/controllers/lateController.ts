@@ -1,0 +1,35 @@
+import { lateQuerySchema } from "../schemas/late";
+import { listLate } from "../services/lateService";
+import type { AppHandler } from "../types";
+
+export const lateListHandler: AppHandler = async (c) => {
+  const parsed = lateQuerySchema.safeParse(c.req.query());
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid query parameters",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  try {
+    const data = await listLate(c.env.poco_db, parsed.data);
+    return c.json({ ok: true, data });
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while loading late list",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+};
