@@ -909,6 +909,87 @@ app.get("/houses", authGuard, async (c) => {
   }
 });
 
+app.get("/houses/pending", authGuard, async (c) => {
+  try {
+    const rows = await c.env.poco_db
+      .prepare(
+        `SELECT
+           h.id,
+           h.street,
+           h.house_number,
+           h.complement,
+           h.cep,
+           h.reference,
+           h.monthly_amount_cents,
+           h.status,
+           h.notes,
+           h.created_at,
+           h.updated_at,
+           p.id AS responsible_id,
+           p.name AS responsible_name,
+           p.phone AS responsible_phone
+         FROM houses h
+         LEFT JOIN house_responsibilities hr
+           ON hr.house_id = h.id AND hr.end_at IS NULL
+         LEFT JOIN people p ON p.id = hr.person_id
+         WHERE (h.street IS NULL OR TRIM(h.street) = '')
+            OR (h.house_number IS NULL OR TRIM(h.house_number) = '')
+            OR hr.id IS NULL
+         ORDER BY h.created_at DESC`
+      )
+      .all();
+
+    const items = rows.results.map((row) => {
+      const pending_reasons: string[] = [];
+      if (!row.street || String(row.street).trim() === "") {
+        pending_reasons.push("missing_street");
+      }
+      if (!row.house_number || String(row.house_number).trim() === "") {
+        pending_reasons.push("missing_house_number");
+      }
+      if (!row.responsible_id) {
+        pending_reasons.push("missing_responsible");
+      }
+
+      return {
+        id: row.id,
+        house_id: row.id,
+        street: row.street,
+        house_number: row.house_number,
+        complement: row.complement,
+        cep: row.cep,
+        reference: row.reference,
+        monthly_amount_cents: row.monthly_amount_cents,
+        status: row.status,
+        notes: row.notes,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        responsible_current: row.responsible_id
+          ? {
+              id: row.responsible_id,
+              name: row.responsible_name,
+              phone: row.responsible_phone
+            }
+          : null,
+        pending_reasons
+      };
+    });
+
+    return c.json({ ok: true, data: { items } });
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while loading pending houses",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+});
+
 app.get("/houses/:id", authGuard, async (c) => {
   const houseId = c.req.param("id").trim();
   if (!houseId) {
@@ -1029,87 +1110,6 @@ app.get("/houses/:id", authGuard, async (c) => {
         ok: false,
         error: {
           message: "Database error while loading house",
-          details: error instanceof Error ? error.message : String(error)
-        }
-      },
-      500
-    );
-  }
-});
-
-app.get("/houses/pending", authGuard, async (c) => {
-  try {
-    const rows = await c.env.poco_db
-      .prepare(
-        `SELECT
-           h.id,
-           h.street,
-           h.house_number,
-           h.complement,
-           h.cep,
-           h.reference,
-           h.monthly_amount_cents,
-           h.status,
-           h.notes,
-           h.created_at,
-           h.updated_at,
-           p.id AS responsible_id,
-           p.name AS responsible_name,
-           p.phone AS responsible_phone
-         FROM houses h
-         LEFT JOIN house_responsibilities hr
-           ON hr.house_id = h.id AND hr.end_at IS NULL
-         LEFT JOIN people p ON p.id = hr.person_id
-         WHERE (h.street IS NULL OR TRIM(h.street) = '')
-            OR (h.house_number IS NULL OR TRIM(h.house_number) = '')
-            OR hr.id IS NULL
-         ORDER BY h.created_at DESC`
-      )
-      .all();
-
-    const items = rows.results.map((row) => {
-      const pending_reasons: string[] = [];
-      if (!row.street || String(row.street).trim() === "") {
-        pending_reasons.push("missing_street");
-      }
-      if (!row.house_number || String(row.house_number).trim() === "") {
-        pending_reasons.push("missing_house_number");
-      }
-      if (!row.responsible_id) {
-        pending_reasons.push("missing_responsible");
-      }
-
-      return {
-        id: row.id,
-        house_id: row.id,
-        street: row.street,
-        house_number: row.house_number,
-        complement: row.complement,
-        cep: row.cep,
-        reference: row.reference,
-        monthly_amount_cents: row.monthly_amount_cents,
-        status: row.status,
-        notes: row.notes,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
-        responsible_current: row.responsible_id
-          ? {
-              id: row.responsible_id,
-              name: row.responsible_name,
-              phone: row.responsible_phone
-            }
-          : null,
-        pending_reasons
-      };
-    });
-
-    return c.json({ ok: true, data: { items } });
-  } catch (error) {
-    return c.json(
-      {
-        ok: false,
-        error: {
-          message: "Database error while loading pending houses",
           details: error instanceof Error ? error.message : String(error)
         }
       },
