@@ -24,13 +24,13 @@ export const Modal = ({ isOpen, title, eyebrow, onClose, children }: ModalProps)
 
   return (
     <div
-      className="fixed inset-0 z-10 flex items-end justify-center bg-black/50 p-6"
+      className="fixed inset-0 z-10 flex items-end justify-center bg-black/50 p-6 debug"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
       onClick={handleBackdropClick}
     >
-      <div className="w-full max-h-[90vh] overflow-y-auto rounded-modal border border-border bg-bg-strong p-6 shadow-card">
+      <div className="w-1/2 max-h-[70vh] overflow-y-auto rounded-modal border border-border bg-bg-strong p-6 shadow-card debug">
         <div className="mb-4 flex items-center justify-between gap-4">
           <div>
             {eyebrow ? (

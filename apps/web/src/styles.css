@@ -176,3 +176,7 @@
     transition: none !important;
   }
 }
+
+.debug {
+  border: 2px solid red;
+}
