@@ -1,3 +1,14 @@
+import {
+  FileDown,
+  Grid2x2,
+  Home,
+  Eye,
+  MapPin,
+  Plus,
+  Repeat,
+  Save,
+  User
+} from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiDownload, apiFetch } from "../lib/api";
@@ -251,22 +262,27 @@ export const HousesPage = () => {
     <section className="grid gap-5">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-[1.4rem] font-title">Casas</h2>
+          <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+            <Home className="h-5 w-5 text-accent" />
+            Casas
+          </h2>
           <p className="text-sm text-muted">Busca rápida e status das casas</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
-            className="rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+            className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
             type="button"
             onClick={() => apiDownload("/export/houses.csv", "houses.csv")}
           >
+            <FileDown className="h-4 w-4" />
             Exportar CSV
           </button>
           <button
-            className="rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none"
+            className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none"
             onClick={() => setIsModalOpen(true)}
           >
-            + Nova casa
+            <Plus className="h-4 w-4" />
+            Nova casa
           </button>
         </div>
       </header>
@@ -302,9 +318,10 @@ export const HousesPage = () => {
                 </p>
               </div>
               <Link
-                className="text-sm font-semibold text-text transition hover:opacity-80"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-text transition hover:opacity-80"
                 to={`/houses/${house.id}`}
               >
+                <Eye className="h-4 w-4" />
                 Ver
               </Link>
             </div>
@@ -319,11 +336,12 @@ export const HousesPage = () => {
         footer={
           <div className="flex justify-end">
             <button
-              className="rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
               type="submit"
               form={formId}
               disabled={isSubmitting}
             >
+              <Save className="h-4 w-4" />
               {isSubmitting ? "Salvando..." : "Salvar"}
             </button>
           </div>
@@ -331,7 +349,10 @@ export const HousesPage = () => {
       >
         <form className="grid gap-4" id={formId} onSubmit={handleSubmit}>
           <div className="grid gap-2 text-sm">
-            <span>Rua</span>
+            <span className="inline-flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-accent" />
+              Rua
+            </span>
             <input
               type="text"
               placeholder="Rua principal"
@@ -400,7 +421,10 @@ export const HousesPage = () => {
           </label>
 
           <div className="grid gap-4 rounded-card border border-border bg-accent-soft p-5">
-            <strong className="text-sm font-semibold">Responsável (opcional)</strong>
+            <strong className="inline-flex items-center gap-2 text-sm font-semibold">
+              <User className="h-4 w-4 text-accent" />
+              Responsável (opcional)
+            </strong>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="grid gap-2 text-sm">
                 <span>Nome</span>
@@ -432,6 +456,7 @@ export const HousesPage = () => {
                 checked={reuseAddress}
                 onChange={(event) => setReuseAddress(event.target.checked)}
               />
+              <Repeat className="h-4 w-4" />
               <span>Reutilizar endereço anterior</span>
             </label>
             <label className="flex items-center gap-2 text-sm text-muted">
@@ -440,6 +465,7 @@ export const HousesPage = () => {
                 checked={modeQuadra}
                 onChange={(event) => setModeQuadra(event.target.checked)}
               />
+              <Grid2x2 className="h-4 w-4" />
               <span>Modo quadra</span>
             </label>
           </div>

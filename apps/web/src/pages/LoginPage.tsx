@@ -1,3 +1,4 @@
+import { KeyRound, LogIn } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../lib/api";
@@ -61,12 +62,18 @@ export const LoginPage = () => {
         onSubmit={handleSubmit}
       >
         <p className="text-[0.62rem] font-semibold uppercase tracking-[0.28em] text-muted">
-          poco
+          Aguiar
         </p>
-        <h2 className="text-[1.4rem] font-title">Entrar</h2>
+        <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+          <LogIn className="h-5 w-5 text-accent" />
+          Entrar
+        </h2>
         <p className="text-sm text-muted">Use sua API key para continuar.</p>
         <label className="mt-4 grid gap-2 text-sm">
-          <span>API Key</span>
+          <span className="inline-flex items-center gap-2">
+            <KeyRound className="h-4 w-4 text-accent" />
+            API Key
+          </span>
           <input
             type="password"
             placeholder="••••••••"
@@ -78,10 +85,11 @@ export const LoginPage = () => {
         </label>
         {error ? <p className="text-sm text-danger">{error}</p> : null}
         <button
-          className="mt-2 w-full rounded-pill bg-accent px-5 py-2.5 font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none"
+          className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-pill bg-accent px-5 py-2.5 font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none"
           type="submit"
           disabled={isLoading}
         >
+          <LogIn className="h-4 w-4" />
           {isLoading ? "Entrando..." : "Entrar"}
         </button>
       </form>

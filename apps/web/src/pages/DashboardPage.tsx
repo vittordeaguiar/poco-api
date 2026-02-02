@@ -1,3 +1,4 @@
+import { BarChart3, Download } from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiDownload, apiFetch } from "../lib/api";
 import { formatCurrency, formatMonthLabel } from "../lib/format";
@@ -61,22 +62,27 @@ export const DashboardPage = () => {
     <section className="grid gap-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-[1.4rem] font-title">Dashboard</h2>
+          <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+            <BarChart3 className="h-5 w-5 text-accent" />
+            Dashboard
+          </h2>
           <p className="text-sm text-muted">Resumo de {monthLabel}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
-            className="rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+            className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
             type="button"
             onClick={handleExportInvoices}
           >
-            Exportar invoices
+            <Download className="h-4 w-4" />
+            Exportar faturas
           </button>
           <button
-            className="rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+            className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
             type="button"
             onClick={handleExportPayments}
           >
+            <Download className="h-4 w-4" />
             Exportar pagamentos
           </button>
         </div>

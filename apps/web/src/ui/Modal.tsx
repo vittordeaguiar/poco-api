@@ -1,5 +1,6 @@
 import { ReactNode, useId } from "react";
 import type { MouseEvent } from "react";
+import { X } from "lucide-react";
 
 type ModalProps = {
   isOpen: boolean;
@@ -32,7 +33,7 @@ export const Modal = ({
 
   return (
     <div
-      className="fixed inset-0 z-10 flex items-center justify-center bg-black/50 p-6"
+      className="fixed inset-0 z-10 flex items-center justify-center bg-[rgba(30,26,22,0.55)] p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
@@ -52,17 +53,30 @@ export const Modal = ({
           </div>
           {onClose ? (
             <button
-              className="text-sm font-semibold text-text transition hover:opacity-80"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-text transition hover:opacity-80"
               onClick={onClose}
             >
-              Fechar
+              <X className="h-4 w-4" />
+              <span>Fechar</span>
             </button>
           ) : null}
         </div>
         <div className="flex-1 overflow-y-auto px-6 pb-6">{children}</div>
-        {footer ? (
+        {footer || onClose ? (
           <div className="border-t border-border bg-bg-strong px-6 py-4">
-            {footer}
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {onClose ? (
+                <button
+                  className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+                  type="button"
+                  onClick={onClose}
+                >
+                  <X className="h-4 w-4" />
+                  Cancelar
+                </button>
+              ) : null}
+              {footer}
+            </div>
           </div>
         ) : null}
       </div>

@@ -1,3 +1,4 @@
+import { ClipboardCheck, Clock, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiFetch } from "../lib/api";
 
@@ -41,7 +42,10 @@ export const AuditPage = () => {
   return (
     <section className="grid gap-5">
       <div>
-        <h2 className="text-[1.4rem] font-title">Audit log</h2>
+        <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+          <ClipboardCheck className="h-5 w-5 text-accent" />
+          Audit log
+        </h2>
         <p className="text-sm text-muted">Últimas ações registradas.</p>
       </div>
 
@@ -70,8 +74,14 @@ export const AuditPage = () => {
               key={item.id}
             >
               <div className="flex items-start justify-between gap-4">
-                <strong className="text-sm font-semibold">{item.action}</strong>
-                <span className="text-xs text-muted">{item.created_at}</span>
+                <strong className="inline-flex items-center gap-2 text-sm font-semibold">
+                  <FileText className="h-4 w-4 text-accent" />
+                  {item.action}
+                </strong>
+                <span className="inline-flex items-center gap-2 text-xs text-muted">
+                  <Clock className="h-3.5 w-3.5" />
+                  {item.created_at}
+                </span>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 <div>

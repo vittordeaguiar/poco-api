@@ -1,3 +1,9 @@
+import {
+  AlertTriangle,
+  Search,
+  SlidersHorizontal,
+  UserPlus
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../lib/api";
@@ -130,7 +136,10 @@ export const PendingPage = () => {
     <section className="grid gap-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-[1.4rem] font-title">Pendências</h2>
+          <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+            <AlertTriangle className="h-5 w-5 text-accent" />
+            Pendências
+          </h2>
           <p className="text-sm text-muted">Casas com dados incompletos.</p>
         </div>
       </div>
@@ -143,7 +152,10 @@ export const PendingPage = () => {
 
       <div className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card">
         <label className="grid gap-2 text-sm">
-          <span>Buscar</span>
+          <span className="inline-flex items-center gap-2">
+            <Search className="h-4 w-4 text-accent" />
+            Buscar
+          </span>
           <input
             type="text"
             placeholder="Rua, número ou responsável"
@@ -153,7 +165,11 @@ export const PendingPage = () => {
           />
         </label>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+            <SlidersHorizontal className="h-4 w-4 text-accent" />
+            Filtros
+          </span>
           {Object.entries(reasonLabels).map(([key, label]) => (
             <label className="flex items-center gap-2 text-sm text-muted" key={key}>
               <input
@@ -221,15 +237,17 @@ export const PendingPage = () => {
 
               <div className="flex flex-wrap gap-3">
                 <Link
-                  className="rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+                  className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
                   to={`/houses/${item.id}`}
                 >
+                  <UserPlus className="h-4 w-4" />
                   Editar casa
                 </Link>
               </div>
 
               <div className="grid gap-4 rounded-card border border-border bg-accent-soft p-5">
-                <strong className="text-sm font-semibold">
+                <strong className="inline-flex items-center gap-2 text-sm font-semibold">
+                  <UserPlus className="h-4 w-4 text-accent" />
                   Definir responsável
                 </strong>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -267,11 +285,12 @@ export const PendingPage = () => {
                 ) : null}
                 <div className="flex justify-end">
                   <button
-                    className="rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
                     type="button"
                     disabled={assignLoading[item.id]}
                     onClick={() => handleAssign(item.id)}
                   >
+                    <UserPlus className="h-4 w-4" />
                     {assignLoading[item.id]
                       ? "Salvando..."
                       : "Salvar responsável"}

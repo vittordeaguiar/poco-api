@@ -1,3 +1,12 @@
+import {
+  ArrowLeft,
+  ClipboardList,
+  CreditCard,
+  Home,
+  Receipt,
+  User,
+  Users
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { apiFetch } from "../lib/api";
@@ -151,10 +160,14 @@ export const HouseDetailPage = () => {
     <section className="grid gap-5">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-[1.4rem] font-title">Casa</h2>
+          <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+            <Home className="h-5 w-5 text-accent" />
+            Casa
+          </h2>
           <p className="text-sm text-muted">Detalhes da casa {id}</p>
         </div>
-        <Link className="text-sm font-semibold text-text" to="/houses">
+        <Link className="inline-flex items-center gap-2 text-sm font-semibold text-text" to="/houses">
+          <ArrowLeft className="h-4 w-4" />
           Voltar
         </Link>
       </header>
@@ -180,7 +193,10 @@ export const HouseDetailPage = () => {
       {data ? (
         <>
           <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
-            <p className="text-sm text-muted">Informações principais</p>
+            <p className="inline-flex items-center gap-2 text-sm text-muted">
+              <ClipboardList className="h-4 w-4 text-accent" />
+              Informações principais
+            </p>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div>
                 <span className="text-xs text-muted">Endereço</span>
@@ -214,7 +230,10 @@ export const HouseDetailPage = () => {
           </div>
 
           <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
-            <p className="text-sm text-muted">Responsável atual</p>
+            <p className="inline-flex items-center gap-2 text-sm text-muted">
+              <User className="h-4 w-4 text-accent" />
+              Responsável atual
+            </p>
             {data.responsible_current ? (
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div>
@@ -236,7 +255,10 @@ export const HouseDetailPage = () => {
           </div>
 
           <div className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card">
-            <p className="text-sm text-muted">Últimas invoices</p>
+            <p className="inline-flex items-center gap-2 text-sm text-muted">
+              <Receipt className="h-4 w-4 text-accent" />
+              Últimas invoices
+            </p>
             {data.invoices.length === 0 ? (
               <p className="text-sm text-muted">Nenhuma invoice encontrada.</p>
             ) : (
@@ -297,11 +319,12 @@ export const HouseDetailPage = () => {
                           className="rounded-xl border border-border bg-bg-strong px-2.5 py-2 text-sm text-text"
                         />
                         <button
-                          className="rounded-pill bg-accent px-4 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+                          className="inline-flex items-center gap-2 rounded-pill bg-accent px-4 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
                           type="button"
                           disabled={paying[invoice.id]}
                           onClick={() => handlePay(invoice.id)}
                         >
+                          <CreditCard className="h-4 w-4" />
                           {paying[invoice.id] ? "Pagando..." : "Pagar"}
                         </button>
                       </div>
@@ -313,7 +336,10 @@ export const HouseDetailPage = () => {
           </div>
 
           <div className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card">
-            <p className="text-sm text-muted">Histórico de responsáveis</p>
+            <p className="inline-flex items-center gap-2 text-sm text-muted">
+              <Users className="h-4 w-4 text-accent" />
+              Histórico de responsáveis
+            </p>
             {data.responsible_history.length === 0 ? (
               <p className="text-sm text-muted">Sem histórico registrado.</p>
             ) : (

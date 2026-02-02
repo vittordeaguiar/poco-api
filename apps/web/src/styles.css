@@ -9,24 +9,26 @@
     color-scheme: light;
     --font-body: "Manrope", "Helvetica Neue", sans-serif;
     --font-title: "Space Grotesk", "Helvetica Neue", sans-serif;
-    --bg: #f6f2ec;
-    --bg-strong: #ffffff;
-    --bg-soft: #fbf7f1;
-    --text: #121416;
-    --muted: #6d675f;
-    --border: #e8dfd3;
-    --shadow: 0 24px 60px rgba(18, 20, 22, 0.12);
-    --shadow-soft: 0 12px 28px rgba(18, 20, 22, 0.08);
-    --accent: #0f766e;
-    --accent-contrast: #f3fbfa;
-    --accent-soft: #e1f3f1;
-    --success: #1f7a4c;
-    --warning: #c06a1b;
-    --danger: #c63c32;
-    --bg-gradient-body: radial-gradient(circle at 15% -10%, #ffffff 0%, #f6f2ec 48%, #efe6db 100%);
-    --bg-gradient-shell: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(246, 242, 236, 0.98));
-    --topbar-bg: rgba(246, 242, 236, 0.92);
-    --bottombar-bg: rgba(255, 255, 255, 0.92);
+    --bg: #f3ece1;
+    --bg-strong: #f8f1e7;
+    --bg-soft: #efe5d6;
+    --text: #1c1b19;
+    --muted: #6a6157;
+    --border: #e0d1bf;
+    --shadow: 0 26px 64px rgba(37, 33, 29, 0.16);
+    --shadow-soft: 0 14px 34px rgba(37, 33, 29, 0.1);
+    --accent: #d85a2a;
+    --accent-contrast: #fff4e8;
+    --accent-soft: #f4c8a8;
+    --success: #2c8b5a;
+    --warning: #d07b2c;
+    --danger: #c3483e;
+    --bg-gradient-body: radial-gradient(circle at 15% -10%, #fff4e8 0%, #f3ece1 45%, #ead7c4 100%);
+    --bg-gradient-shell: linear-gradient(180deg, rgba(255, 244, 232, 0.88), rgba(239, 229, 214, 0.98));
+    --topbar-bg: rgba(243, 236, 225, 0.92);
+    --bottombar-bg: rgba(248, 241, 231, 0.92);
+    --glow-1: rgba(216, 90, 42, 0.22);
+    --glow-2: rgba(208, 123, 44, 0.2);
     font-family: var(--font-body);
     background-color: var(--bg);
     color: var(--text);
@@ -34,24 +36,26 @@
 
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --bg: #0d1214;
-    --bg-strong: #141b1f;
-    --bg-soft: #12181c;
-    --text: #f2f6f7;
-    --muted: #9aa4a8;
-    --border: #232d33;
-    --shadow: 0 28px 70px rgba(0, 0, 0, 0.55);
-    --shadow-soft: 0 16px 32px rgba(0, 0, 0, 0.4);
-    --accent: #4ad4bd;
-    --accent-contrast: #091214;
-    --accent-soft: #1c2a2c;
-    --success: #5ed08c;
-    --warning: #f0a04b;
-    --danger: #ff6f5f;
-    --bg-gradient-body: radial-gradient(circle at 20% -10%, #1a2326 0%, #0d1214 48%, #090d10 100%);
-    --bg-gradient-shell: linear-gradient(180deg, rgba(18, 24, 27, 0.88), rgba(13, 18, 20, 0.98));
-    --topbar-bg: rgba(13, 18, 20, 0.92);
-    --bottombar-bg: rgba(20, 27, 31, 0.9);
+    --bg: #131313;
+    --bg-strong: #1b1a18;
+    --bg-soft: #22201d;
+    --text: #f2e9de;
+    --muted: #b2a89b;
+    --border: #2f2a24;
+    --shadow: 0 30px 76px rgba(5, 4, 3, 0.6);
+    --shadow-soft: 0 18px 40px rgba(5, 4, 3, 0.48);
+    --accent: #f08a4b;
+    --accent-contrast: #2a1c12;
+    --accent-soft: #3a2a1e;
+    --success: #7dd08a;
+    --warning: #f4b06b;
+    --danger: #ff8a78;
+    --bg-gradient-body: radial-gradient(circle at 20% -10%, #2a2320 0%, #131313 45%, #0f0e0d 100%);
+    --bg-gradient-shell: linear-gradient(180deg, rgba(27, 24, 21, 0.88), rgba(19, 19, 19, 0.98));
+    --topbar-bg: rgba(19, 19, 19, 0.92);
+    --bottombar-bg: rgba(27, 26, 24, 0.9);
+    --glow-1: rgba(240, 138, 75, 0.18);
+    --glow-2: rgba(244, 176, 107, 0.14);
   }
 
   * {
@@ -76,6 +80,20 @@
   select,
   textarea {
     font-family: inherit;
+  }
+
+  button {
+    transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+  }
+
+  button:hover:not(:disabled) {
+    transform: translateY(-1px) scale(1.01);
+    filter: brightness(1.03) saturate(1.04);
+    box-shadow: var(--shadow-soft);
+  }
+
+  button:active:not(:disabled) {
+    transform: translateY(0) scale(0.99);
   }
 
   h1,
@@ -115,16 +133,16 @@
     width: 280px;
     height: 280px;
     border-radius: 32% 68% 55% 45% / 44% 35% 65% 56%;
-    background: rgba(255, 255, 255, 0.75);
-    filter: blur(45px);
+    background: radial-gradient(circle at 30% 30%, var(--glow-1), rgba(0, 0, 0, 0));
+    filter: blur(50px);
     z-index: 0;
     animation: float 14s ease-in-out infinite;
   }
 
   :root[data-theme="dark"] .app-shell::before,
   :root[data-theme="dark"] .app-shell::after {
-    background: rgba(24, 32, 36, 0.8);
-    opacity: 0.7;
+    background: radial-gradient(circle at 30% 30%, var(--glow-2), rgba(0, 0, 0, 0));
+    opacity: 0.85;
   }
 
   .app-shell::before {

@@ -1,3 +1,4 @@
+import { FileDown, Phone, Receipt, Timer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiDownload, apiFetch } from "../lib/api";
 import { formatCurrency, formatPeriod } from "../lib/format";
@@ -63,11 +64,14 @@ export const LatePage = () => {
     <section className="grid gap-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-[1.4rem] font-title">Casas em atraso</h2>
+          <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+            <Timer className="h-5 w-5 text-accent" />
+            Casas em atraso
+          </h2>
           <p className="text-sm text-muted">Lista de pendências até este mês.</p>
         </div>
         <button
-          className="rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+          className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
           type="button"
           onClick={() =>
             apiDownload(
@@ -76,6 +80,7 @@ export const LatePage = () => {
             )
           }
         >
+          <FileDown className="h-4 w-4" />
           Exportar CSV
         </button>
       </div>
@@ -122,14 +127,20 @@ export const LatePage = () => {
               </div>
 
               <div>
-                <p className="text-xs text-muted">Contato</p>
+                <p className="inline-flex items-center gap-2 text-xs text-muted">
+                  <Phone className="h-4 w-4 text-accent" />
+                  Contato
+                </p>
                 <strong className="mt-1 block text-base font-semibold">
                   {item.responsible_current?.phone ?? "Sem telefone"}
                 </strong>
               </div>
 
               <div>
-                <p className="text-xs text-muted">Invoices em aberto</p>
+                <p className="inline-flex items-center gap-2 text-xs text-muted">
+                  <Receipt className="h-4 w-4 text-accent" />
+                  Invoices em aberto
+                </p>
                 <div className="mt-2 grid gap-3">
                   {item.invoices_open.map((invoice) => (
                     <div

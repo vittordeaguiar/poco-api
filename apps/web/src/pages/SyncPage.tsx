@@ -1,3 +1,4 @@
+import { ListChecks, RefreshCw, UploadCloud } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
 import {
@@ -93,7 +94,10 @@ export const SyncPage = () => {
   return (
     <section className="grid gap-5">
       <div>
-        <h2 className="text-[1.4rem] font-title">Sincronização</h2>
+        <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+          <RefreshCw className="h-5 w-5 text-accent" />
+          Sincronização
+        </h2>
         <p className="text-sm text-muted">
           Itens salvos localmente aguardando envio.
         </p>
@@ -107,15 +111,17 @@ export const SyncPage = () => {
 
       <div className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card">
         <div className="flex items-center justify-between gap-4">
-          <strong className="text-sm font-semibold">
+          <strong className="inline-flex items-center gap-2 text-sm font-semibold">
+            <ListChecks className="h-4 w-4 text-accent" />
             {items.length} pendências
           </strong>
           <button
-            className="rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
             type="button"
             disabled={isSyncing || items.length === 0}
             onClick={handleResendAll}
           >
+            <UploadCloud className="h-4 w-4" />
             {isSyncing ? "Reenviando..." : "Reenviar tudo"}
           </button>
         </div>
