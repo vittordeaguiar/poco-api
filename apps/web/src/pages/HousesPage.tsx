@@ -247,50 +247,63 @@ export const HousesPage = () => {
   };
 
   return (
-    <section className="stack">
-      <header className="section-header">
+    <section className="grid gap-5">
+      <header className="flex items-start justify-between gap-4">
         <div>
-          <h2>Casas</h2>
-          <p className="muted">Busca rápida e status das casas</p>
+          <h2 className="text-[1.4rem] font-title">Casas</h2>
+          <p className="text-sm text-muted">Busca rápida e status das casas</p>
         </div>
-        <div className="header-actions">
+        <div className="flex flex-wrap gap-2">
           <button
-            className="ghost"
+            className="rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
             type="button"
             onClick={() => apiDownload("/export/houses.csv", "houses.csv")}
           >
             Exportar CSV
           </button>
-          <button className="primary" onClick={() => setIsModalOpen(true)}>
+          <button
+            className="rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none"
+            onClick={() => setIsModalOpen(true)}
+          >
             + Nova casa
           </button>
         </div>
       </header>
 
-      {toast ? <div className="toast">{toast}</div> : null}
+      {toast ? (
+        <div className="sticky top-[72px] rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-contrast shadow-soft">
+          {toast}
+        </div>
+      ) : null}
 
-      <div className="card">
-        {isLoading ? <p className="muted">Carregando...</p> : null}
-        {loadError ? <p className="error">{loadError}</p> : null}
+      <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+        {isLoading ? <p className="text-sm text-muted">Carregando...</p> : null}
+        {loadError ? <p className="text-sm text-danger">{loadError}</p> : null}
         {!isLoading && !loadError && houses.length === 0 ? (
-          <p className="muted">Nenhuma casa cadastrada ainda.</p>
+          <p className="text-sm text-muted">Nenhuma casa cadastrada ainda.</p>
         ) : null}
 
         {!isLoading &&
           !loadError &&
           houses.map((house) => (
-            <div className="list-item" key={house.id}>
+            <div
+              className="flex items-center justify-between gap-4 border-b border-dashed border-border py-3 last:border-b-0"
+              key={house.id}
+            >
               <div>
-                <strong>
+                <strong className="text-sm font-semibold">
                   {house.street ?? "(sem rua)"}, {house.house_number ?? "s/n"}
                 </strong>
-                <p className="muted">
+                <p className="text-sm text-muted">
                   {house.responsible_current
                     ? `Responsável: ${house.responsible_current.name}`
                     : "Sem responsável"}
                 </p>
               </div>
-              <Link className="link" to={`/houses/${house.id}`}>
+              <Link
+                className="text-sm font-semibold text-text transition hover:opacity-80"
+                to={`/houses/${house.id}`}
+              >
                 Ver
               </Link>
             </div>
@@ -303,19 +316,20 @@ export const HousesPage = () => {
         eyebrow="Cadastro rápido"
         onClose={() => setIsModalOpen(false)}
       >
-        <form className="stack" onSubmit={handleSubmit}>
-          <div className="field">
+        <form className="grid gap-4" onSubmit={handleSubmit}>
+          <div className="grid gap-2 text-sm">
             <span>Rua</span>
             <input
               type="text"
               placeholder="Rua principal"
               value={street}
               onChange={(event) => setStreet(event.target.value)}
+              className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
             />
           </div>
 
-          <div className="form-row">
-            <label className="field">
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2 text-sm">
               <span>Número</span>
               <input
                 type="text"
@@ -323,76 +337,83 @@ export const HousesPage = () => {
                 value={houseNumber}
                 onChange={(event) => setHouseNumber(event.target.value)}
                 required
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
               />
             </label>
-            <label className="field">
+            <label className="grid gap-2 text-sm">
               <span>CEP</span>
               <input
                 type="text"
                 placeholder="00000-000"
                 value={cep}
                 onChange={(event) => setCep(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
               />
             </label>
           </div>
 
-          <div className="form-row">
-            <label className="field">
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2 text-sm">
               <span>Referência</span>
               <input
                 type="text"
                 placeholder="Perto do mercado"
                 value={reference}
                 onChange={(event) => setReference(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
               />
             </label>
-            <label className="field">
+            <label className="grid gap-2 text-sm">
               <span>Complemento</span>
               <input
                 type="text"
                 placeholder="Casa A"
                 value={complement}
                 onChange={(event) => setComplement(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
               />
             </label>
           </div>
 
-          <label className="field">
+          <label className="grid gap-2 text-sm">
             <span>Mensalidade (R$)</span>
             <input
               type="text"
               inputMode="decimal"
               value={monthlyAmount}
               onChange={(event) => setMonthlyAmount(event.target.value)}
+              className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
             />
           </label>
 
-          <div className="card muted-card">
-            <strong>Responsável (opcional)</strong>
-            <div className="form-row">
-              <label className="field">
+          <div className="grid gap-4 rounded-card border border-border bg-accent-soft p-5">
+            <strong className="text-sm font-semibold">Responsável (opcional)</strong>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="grid gap-2 text-sm">
                 <span>Nome</span>
                 <input
                   type="text"
                   placeholder="Nome do responsável"
                   value={responsibleName}
                   onChange={(event) => setResponsibleName(event.target.value)}
+                  className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
                 />
               </label>
-              <label className="field">
+              <label className="grid gap-2 text-sm">
                 <span>Telefone</span>
                 <input
                   type="text"
                   placeholder="(11) 99999-9999"
                   value={responsiblePhone}
                   onChange={(event) => setResponsiblePhone(event.target.value)}
+                  className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
                 />
               </label>
             </div>
           </div>
 
-          <div className="toggle-row">
-            <label className="toggle">
+          <div className="grid gap-2">
+            <label className="flex items-center gap-2 text-sm text-muted">
               <input
                 type="checkbox"
                 checked={reuseAddress}
@@ -400,7 +421,7 @@ export const HousesPage = () => {
               />
               <span>Reutilizar endereço anterior</span>
             </label>
-            <label className="toggle">
+            <label className="flex items-center gap-2 text-sm text-muted">
               <input
                 type="checkbox"
                 checked={modeQuadra}
@@ -411,19 +432,23 @@ export const HousesPage = () => {
           </div>
 
           {modeQuadra ? (
-            <p className="muted">
+            <p className="text-sm text-muted">
               Modo quadra ativo: rua, CEP e referência permanecem até desligar.
             </p>
           ) : null}
 
           {reuseAddress && !lastAddress ? (
-            <p className="muted">Nenhum endereço salvo ainda.</p>
+            <p className="text-sm text-muted">Nenhum endereço salvo ainda.</p>
           ) : null}
 
-          {formError ? <p className="error">{formError}</p> : null}
+          {formError ? <p className="text-sm text-danger">{formError}</p> : null}
 
-          <div className="form-actions">
-            <button className="primary" type="submit" disabled={isSubmitting}>
+          <div className="flex justify-end">
+            <button
+              className="rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+              type="submit"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? "Salvando..." : "Salvar"}
             </button>
           </div>

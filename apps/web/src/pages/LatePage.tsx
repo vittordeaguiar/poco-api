@@ -60,14 +60,14 @@ export const LatePage = () => {
   }, [as_of_year, as_of_month]);
 
   return (
-    <section className="stack">
-      <div className="section-header">
+    <section className="grid gap-5">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h2>Casas em atraso</h2>
-          <p className="muted">Lista de pendências até este mês.</p>
+          <h2 className="text-[1.4rem] font-title">Casas em atraso</h2>
+          <p className="text-sm text-muted">Lista de pendências até este mês.</p>
         </div>
         <button
-          className="ghost"
+          className="rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
           type="button"
           onClick={() =>
             apiDownload(
@@ -81,60 +81,70 @@ export const LatePage = () => {
       </div>
 
       {isLoading ? (
-        <div className="card">
-          <p className="muted">Carregando lista...</p>
+        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <p className="text-sm text-muted">Carregando lista...</p>
         </div>
       ) : null}
 
       {error ? (
-        <div className="card">
-          <p className="error">{error}</p>
+        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <p className="text-sm text-danger">{error}</p>
         </div>
       ) : null}
 
       {!isLoading && !error && items.length === 0 ? (
-        <div className="card">
-          <p className="muted">Nenhuma casa em atraso por enquanto.</p>
+        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <p className="text-sm text-muted">Nenhuma casa em atraso por enquanto.</p>
         </div>
       ) : null}
 
       {!isLoading && !error
         ? items.map((item) => (
-            <div className="card stack" key={item.house.id}>
-              <div className="section-header">
+            <div
+              className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card"
+              key={item.house.id}
+            >
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <strong>
+                  <strong className="text-sm font-semibold">
                     {item.house.street ?? "(sem rua)"},{" "}
                     {item.house.house_number ?? "s/n"}
                   </strong>
-                  <p className="muted">
+                  <p className="text-sm text-muted">
                     {item.responsible_current
                       ? `Responsável: ${item.responsible_current.name}`
                       : "Sem responsável atual"}
                   </p>
                 </div>
-                <span className="status-pill status-open">
+                <span className="inline-flex items-center rounded-pill bg-accent-soft px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] text-warning">
                   {item.months_late} meses em atraso
                 </span>
               </div>
 
               <div>
-                <p className="metric-label">Contato</p>
-                <strong className="metric-value">
+                <p className="text-xs text-muted">Contato</p>
+                <strong className="mt-1 block text-base font-semibold">
                   {item.responsible_current?.phone ?? "Sem telefone"}
                 </strong>
               </div>
 
               <div>
-                <p className="metric-label">Invoices em aberto</p>
-                <div className="stack">
+                <p className="text-xs text-muted">Invoices em aberto</p>
+                <div className="mt-2 grid gap-3">
                   {item.invoices_open.map((invoice) => (
-                    <div className="invoice-row" key={invoice.id}>
-                      <span>{formatPeriod(invoice.year, invoice.month)}</span>
-                      <span className="muted">
+                    <div
+                      className="grid gap-2 border-b border-dashed border-border pb-3 last:border-b-0 last:pb-0 md:grid-cols-[1.2fr_0.8fr_auto] md:items-center"
+                      key={invoice.id}
+                    >
+                      <span className="text-sm">
+                        {formatPeriod(invoice.year, invoice.month)}
+                      </span>
+                      <span className="text-sm text-muted">
                         {invoice.due_date ? `Venc. ${invoice.due_date}` : "-"}
                       </span>
-                      <strong>{formatCurrency(invoice.amount_cents)}</strong>
+                      <strong className="text-sm font-semibold">
+                        {formatCurrency(invoice.amount_cents)}
+                      </strong>
                     </div>
                   ))}
                 </div>

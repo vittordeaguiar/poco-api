@@ -130,108 +130,144 @@ export const HouseDetailPage = () => {
     }
   };
 
+  const statusClass = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-accent-soft text-success";
+      case "pending":
+      case "open":
+        return "bg-accent-soft text-warning";
+      case "inactive":
+      case "void":
+        return "bg-accent-soft text-muted";
+      case "paid":
+        return "bg-accent-soft text-success";
+      default:
+        return "bg-accent-soft text-muted";
+    }
+  };
+
   return (
-    <section className="stack">
-      <header className="section-header">
+    <section className="grid gap-5">
+      <header className="flex items-start justify-between gap-4">
         <div>
-          <h2>Casa</h2>
-          <p className="muted">Detalhes da casa {id}</p>
+          <h2 className="text-[1.4rem] font-title">Casa</h2>
+          <p className="text-sm text-muted">Detalhes da casa {id}</p>
         </div>
-        <Link className="link" to="/houses">
+        <Link className="text-sm font-semibold text-text" to="/houses">
           Voltar
         </Link>
       </header>
 
-      {toast ? <div className="toast">{toast}</div> : null}
+      {toast ? (
+        <div className="sticky top-[72px] rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-contrast shadow-soft">
+          {toast}
+        </div>
+      ) : null}
 
       {isLoading ? (
-        <div className="card">
-          <p className="muted">Carregando...</p>
+        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <p className="text-sm text-muted">Carregando...</p>
         </div>
       ) : null}
 
       {error ? (
-        <div className="card">
-          <p className="error">{error}</p>
+        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <p className="text-sm text-danger">{error}</p>
         </div>
       ) : null}
 
       {data ? (
         <>
-          <div className="card">
-            <p className="muted">Informações principais</p>
-            <div className="grid">
+          <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+            <p className="text-sm text-muted">Informações principais</p>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div>
-                <span className="metric-label">Endereço</span>
-                <strong className="metric-value">{addressLabel}</strong>
+                <span className="text-xs text-muted">Endereço</span>
+                <strong className="mt-1 block text-base font-semibold">
+                  {addressLabel}
+                </strong>
               </div>
               <div>
-                <span className="metric-label">Status</span>
-                <span className={`status-pill status-${data.house.status}`}>
+                <span className="text-xs text-muted">Status</span>
+                <span
+                  className={`mt-2 inline-flex items-center rounded-pill px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] ${statusClass(
+                    data.house.status
+                  )}`}
+                >
                   {data.house.status}
                 </span>
               </div>
               <div>
-                <span className="metric-label">Mensalidade</span>
-                <strong className="metric-value">
+                <span className="text-xs text-muted">Mensalidade</span>
+                <strong className="mt-1 block text-base font-semibold">
                   {formatCurrency(data.house.monthly_amount_cents)}
                 </strong>
               </div>
               <div>
-                <span className="metric-label">CEP</span>
-                <strong className="metric-value">
+                <span className="text-xs text-muted">CEP</span>
+                <strong className="mt-1 block text-base font-semibold">
                   {data.house.cep ?? "-"}
                 </strong>
               </div>
             </div>
           </div>
 
-          <div className="card">
-            <p className="muted">Responsável atual</p>
+          <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+            <p className="text-sm text-muted">Responsável atual</p>
             {data.responsible_current ? (
-              <div className="grid">
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div>
-                  <span className="metric-label">Nome</span>
-                  <strong className="metric-value">
+                  <span className="text-xs text-muted">Nome</span>
+                  <strong className="mt-1 block text-base font-semibold">
                     {data.responsible_current.name}
                   </strong>
                 </div>
                 <div>
-                  <span className="metric-label">Telefone</span>
-                  <strong className="metric-value">
+                  <span className="text-xs text-muted">Telefone</span>
+                  <strong className="mt-1 block text-base font-semibold">
                     {data.responsible_current.phone ?? "-"}
                   </strong>
                 </div>
               </div>
             ) : (
-              <p className="muted">Sem responsável atual.</p>
+              <p className="mt-2 text-sm text-muted">Sem responsável atual.</p>
             )}
           </div>
 
-          <div className="card stack">
-            <p className="muted">Últimas invoices</p>
+          <div className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card">
+            <p className="text-sm text-muted">Últimas invoices</p>
             {data.invoices.length === 0 ? (
-              <p className="muted">Nenhuma invoice encontrada.</p>
+              <p className="text-sm text-muted">Nenhuma invoice encontrada.</p>
             ) : (
               data.invoices.map((invoice) => (
-                <div className="invoice-row" key={invoice.id}>
+                <div
+                  className="grid gap-3 border-b border-dashed border-border pb-3 last:border-b-0 last:pb-0 md:grid-cols-[1.2fr_0.8fr] md:items-center"
+                  key={invoice.id}
+                >
                   <div>
-                    <strong>{formatPeriod(invoice.year, invoice.month)}</strong>
-                    <p className="muted">
+                    <strong className="text-sm font-semibold">
+                      {formatPeriod(invoice.year, invoice.month)}
+                    </strong>
+                    <p className="text-sm text-muted">
                       {formatCurrency(invoice.amount_cents)}
                     </p>
                   </div>
-                  <div className="invoice-actions">
-                    <span className={`status-pill status-${invoice.status}`}>
+                  <div className="grid gap-2 md:justify-items-end">
+                    <span
+                      className={`inline-flex items-center rounded-pill px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] ${statusClass(
+                        invoice.status
+                      )}`}
+                    >
                       {invoice.status}
                     </span>
                     {invoice.status === "paid" ? (
-                      <span className="muted">
+                      <span className="text-sm text-muted">
                         {invoice.paid_at ? `Pago em ${invoice.paid_at}` : ""}
                       </span>
                     ) : null}
                     {invoice.status === "open" ? (
-                      <div className="pay-controls">
+                      <div className="grid gap-2 md:grid-cols-[140px_1fr_auto] md:items-center">
                         <select
                           value={methods[invoice.id] ?? "pix"}
                           onChange={(event) =>
@@ -240,6 +276,7 @@ export const HouseDetailPage = () => {
                               [invoice.id]: event.target.value
                             }))
                           }
+                          className="rounded-xl border border-border bg-bg-strong px-2.5 py-2 text-sm"
                         >
                           {paymentMethods.map((item) => (
                             <option key={item.value} value={item.value}>
@@ -257,9 +294,10 @@ export const HouseDetailPage = () => {
                               [invoice.id]: event.target.value
                             }))
                           }
+                          className="rounded-xl border border-border bg-bg-strong px-2.5 py-2 text-sm text-text"
                         />
                         <button
-                          className="primary"
+                          className="rounded-pill bg-accent px-4 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
                           type="button"
                           disabled={paying[invoice.id]}
                           onClick={() => handlePay(invoice.id)}
@@ -274,20 +312,25 @@ export const HouseDetailPage = () => {
             )}
           </div>
 
-          <div className="card stack">
-            <p className="muted">Histórico de responsáveis</p>
+          <div className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card">
+            <p className="text-sm text-muted">Histórico de responsáveis</p>
             {data.responsible_history.length === 0 ? (
-              <p className="muted">Sem histórico registrado.</p>
+              <p className="text-sm text-muted">Sem histórico registrado.</p>
             ) : (
               data.responsible_history.map((item) => (
-                <div className="list-item" key={item.id}>
+                <div
+                  className="flex items-center justify-between gap-4 border-b border-dashed border-border py-3 last:border-b-0"
+                  key={item.id}
+                >
                   <div>
-                    <strong>{item.person.name}</strong>
-                    <p className="muted">
+                    <strong className="text-sm font-semibold">
+                      {item.person.name}
+                    </strong>
+                    <p className="text-sm text-muted">
                       {item.person.phone ?? "-"} • {item.start_at}
                     </p>
                   </div>
-                  <span className="muted">
+                  <span className="text-sm text-muted">
                     {item.end_at ? `Até ${item.end_at}` : "Atual"}
                   </span>
                 </div>

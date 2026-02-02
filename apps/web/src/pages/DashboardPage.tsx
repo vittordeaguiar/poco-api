@@ -58,51 +58,61 @@ export const DashboardPage = () => {
   };
 
   return (
-    <section className="stack">
-      <div className="section-header">
+    <section className="grid gap-5">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h2>Dashboard</h2>
-          <p className="muted">Resumo de {monthLabel}</p>
+          <h2 className="text-[1.4rem] font-title">Dashboard</h2>
+          <p className="text-sm text-muted">Resumo de {monthLabel}</p>
         </div>
-        <div className="header-actions">
-          <button className="ghost" type="button" onClick={handleExportInvoices}>
+        <div className="flex flex-wrap gap-2">
+          <button
+            className="rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+            type="button"
+            onClick={handleExportInvoices}
+          >
             Exportar invoices
           </button>
-          <button className="ghost" type="button" onClick={handleExportPayments}>
+          <button
+            className="rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+            type="button"
+            onClick={handleExportPayments}
+          >
             Exportar pagamentos
           </button>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="card">
-          <p className="muted">Carregando dados...</p>
+        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <p className="text-sm text-muted">Carregando dados...</p>
         </div>
       ) : null}
 
       {error ? (
-        <div className="card">
-          <p className="error">{error}</p>
+        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <p className="text-sm text-danger">{error}</p>
         </div>
       ) : null}
 
       {data ? (
-        <div className="card-grid">
-          <div className="card">
-            <span className="metric-label">Recebido</span>
-            <strong className="metric-value">
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+            <span className="text-xs text-muted">Recebido</span>
+            <strong className="mt-1 block text-lg font-semibold">
               {formatCurrency(data.received_cents)}
             </strong>
           </div>
-          <div className="card">
-            <span className="metric-label">Em aberto</span>
-            <strong className="metric-value">
+          <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+            <span className="text-xs text-muted">Em aberto</span>
+            <strong className="mt-1 block text-lg font-semibold">
               {formatCurrency(data.open_cents)}
             </strong>
           </div>
-          <div className="card">
-            <span className="metric-label">Casas em atraso</span>
-            <strong className="metric-value">{data.houses_late_count}</strong>
+          <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+            <span className="text-xs text-muted">Casas em atraso</span>
+            <strong className="mt-1 block text-lg font-semibold">
+              {data.houses_late_count}
+            </strong>
           </div>
         </div>
       ) : null}

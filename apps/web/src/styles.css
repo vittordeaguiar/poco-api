@@ -23,6 +23,10 @@
     --success: #1f7a4c;
     --warning: #c06a1b;
     --danger: #c63c32;
+    --bg-gradient-body: radial-gradient(circle at 15% -10%, #ffffff 0%, #f6f2ec 48%, #efe6db 100%);
+    --bg-gradient-shell: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(246, 242, 236, 0.98));
+    --topbar-bg: rgba(246, 242, 236, 0.92);
+    --bottombar-bg: rgba(255, 255, 255, 0.92);
     font-family: var(--font-body);
     background-color: var(--bg);
     color: var(--text);
@@ -44,6 +48,10 @@
     --success: #5ed08c;
     --warning: #f0a04b;
     --danger: #ff6f5f;
+    --bg-gradient-body: radial-gradient(circle at 20% -10%, #1a2326 0%, #0d1214 48%, #090d10 100%);
+    --bg-gradient-shell: linear-gradient(180deg, rgba(18, 24, 27, 0.88), rgba(13, 18, 20, 0.98));
+    --topbar-bg: rgba(13, 18, 20, 0.92);
+    --bottombar-bg: rgba(20, 27, 31, 0.9);
   }
 
   * {
@@ -55,11 +63,7 @@
     min-height: 100vh;
     line-height: 1.6;
     overflow-x: hidden;
-    background: radial-gradient(circle at 15% -10%, #ffffff 0%, #f6f2ec 48%, #efe6db 100%);
-  }
-
-  :root[data-theme="dark"] body {
-    background: radial-gradient(circle at 20% -10%, #1a2326 0%, #0d1214 48%, #090d10 100%);
+    background: var(--bg-gradient-body);
   }
 
   a {
@@ -101,12 +105,7 @@
 
 @layer components {
   .app-shell {
-    @apply min-h-screen flex flex-col relative overflow-x-hidden;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(246, 242, 236, 0.98));
-  }
-
-  :root[data-theme="dark"] .app-shell {
-    background: linear-gradient(180deg, rgba(18, 24, 27, 0.88), rgba(13, 18, 20, 0.98));
+    background: var(--bg-gradient-shell);
   }
 
   .app-shell::before,
@@ -139,444 +138,16 @@
     animation-delay: 2.4s;
   }
 
-  .topbar {
-    @apply flex items-center justify-between sticky top-0 z-20 px-6 pt-5 pb-3;
-    background: rgba(246, 242, 236, 0.92);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(232, 223, 211, 0.7);
-  }
-
-  :root[data-theme="dark"] .topbar {
-    background: rgba(13, 18, 20, 0.92);
-    border-bottom: 1px solid rgba(35, 45, 51, 0.7);
-  }
-
-  .topbar h1 {
-    @apply mt-1;
-  }
-
-  .topbar-actions {
-    @apply inline-flex items-center gap-2.5;
-  }
-
-  .eyebrow {
-    @apply uppercase font-semibold;
-    letter-spacing: 0.28em;
-    font-size: 0.62rem;
-    color: var(--muted);
-    margin: 0;
-  }
-
-  .content {
-    @apply flex-1 relative z-10 px-6 pt-4 pb-24;
-  }
-
-  .bottombar {
-    @apply grid gap-1.5 sticky bottom-0 z-20 px-3 py-2 overflow-x-auto;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 1fr);
-    border: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(14px);
-    margin: 0 1rem 1rem;
-    border-radius: 18px;
-    box-shadow: var(--shadow-soft);
-  }
-
-  :root[data-theme="dark"] .bottombar {
-    background: rgba(20, 27, 31, 0.9);
-  }
-
-  .bottombar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .bottombar {
+  .scrollbar-hide {
     scrollbar-width: none;
   }
 
-  .nav-item {
-    @apply inline-flex items-center justify-center gap-1.5 text-xs whitespace-nowrap transition;
-    color: var(--muted);
-    padding: 0.5rem 0.6rem;
-    border-radius: 14px;
-    transition: transform 160ms ease, background 160ms ease, color 160ms ease;
-  }
-
-  .nav-item.active {
-    background: var(--accent);
-    color: var(--accent-contrast);
-    box-shadow: 0 10px 24px rgba(15, 118, 110, 0.25);
-    transform: translateY(-1px);
-  }
-
-  .badge {
-    @apply inline-flex items-center justify-center font-bold;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: var(--accent-contrast);
-    color: var(--accent);
-    font-size: 0.7rem;
-  }
-
-  .stack {
-    @apply grid gap-5;
-  }
-
-  .section-header {
-    @apply flex items-start justify-between gap-4;
-  }
-
-  .header-actions {
-    @apply flex flex-wrap gap-2;
-  }
-
-  .card {
-    @apply rounded-2xl border;
-    background: var(--bg-strong);
-    border-color: rgba(232, 223, 211, 0.6);
-    padding: 1.2rem 1.35rem;
-    box-shadow: var(--shadow);
-    animation: fadeUp 240ms ease;
-  }
-
-  :root[data-theme="dark"] .card {
-    border-color: rgba(35, 45, 51, 0.8);
-  }
-
-  .metrics {
-    @apply grid gap-3;
-  }
-
-  .card-grid {
-    @apply grid gap-4;
-  }
-
-  .metric-label {
-    @apply block text-xs;
-    color: var(--muted);
-  }
-
-  .metric-value {
-    font-size: 1.2rem;
-    font-weight: 600;
-  }
-
-  .list-item {
-    @apply flex items-center justify-between gap-4;
-    padding: 0.75rem 0;
-    border-bottom: 1px dashed var(--border);
-  }
-
-  .list-item:last-child {
-    border-bottom: none;
-  }
-
-  .muted {
-    color: var(--muted);
-    margin: 0.2rem 0 0;
-  }
-
-  .link {
-    color: var(--text);
-    font-weight: 600;
-  }
-
-  .button-link {
-    @apply bg-transparent border-0 p-0 cursor-pointer;
-  }
-
-  .primary {
-    @apply font-bold border-0 rounded-full;
-    background: var(--accent);
-    color: var(--accent-contrast);
-    padding: 0.6rem 1.3rem;
-    box-shadow: var(--shadow-soft);
-    transition: transform 160ms ease, box-shadow 160ms ease;
-  }
-
-  .primary.full {
-    @apply w-full;
-  }
-
-  .primary:active {
-    transform: translateY(1px);
-    box-shadow: none;
-  }
-
-  .ghost {
-    @apply font-semibold rounded-full border;
-    border-color: var(--border);
-    background: var(--bg-strong);
-    color: var(--text);
-    padding: 0.45rem 1rem;
-  }
-
-  .muted-card {
-    background: var(--accent-soft);
-    border: 1px solid var(--border);
-  }
-
-  .field {
-    @apply grid gap-2 text-sm;
-    margin-top: 1rem;
-  }
-
-  .field input {
-    @apply text-base rounded-2xl;
-    padding: 0.7rem 0.85rem;
-    border: 1px solid var(--border);
-    background: var(--bg-strong);
-    color: var(--text);
-    transition: border 160ms ease, box-shadow 160ms ease;
-  }
-
-  .field input:focus {
-    outline: none;
-    border-color: rgba(15, 118, 110, 0.4);
-    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
-  }
-
-  .form-row {
-    @apply grid gap-4;
-  }
-
-  .form-actions {
-    @apply flex justify-end;
-  }
-
-  .toggle-row {
-    @apply grid gap-2;
-  }
-
-  .filter-row {
-    @apply flex flex-wrap gap-3;
-  }
-
-  .toggle {
-    @apply flex items-center gap-2 text-sm;
-    color: var(--muted);
-  }
-
-  .toast {
-    @apply font-semibold rounded-xl;
-    background: var(--accent);
-    color: var(--accent-contrast);
-    padding: 0.75rem 1rem;
-    box-shadow: var(--shadow-soft);
-    position: sticky;
-    top: 72px;
-  }
-
-  .status-pill {
-    @apply inline-flex items-center font-semibold uppercase;
-    padding: 0.2rem 0.6rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    letter-spacing: 0.04em;
-    background: var(--accent-soft);
-    color: var(--muted);
-  }
-
-  .status-pill.status-active {
-    background: #e1f3e9;
-    color: var(--success);
-  }
-
-  .status-pill.status-pending {
-    background: #fff2dd;
-    color: var(--warning);
-  }
-
-  .status-pill.status-inactive {
-    background: #f1f1f1;
-    color: var(--muted);
-  }
-
-  .status-pill.status-open {
-    background: #fff2dd;
-    color: var(--warning);
-  }
-
-  .status-pill.status-paid {
-    background: #e1f3e9;
-    color: var(--success);
-  }
-
-  .status-pill.status-void {
-    background: #f1f1f1;
-    color: var(--muted);
-  }
-
-  .auth {
-    @apply min-h-screen grid place-items-center relative;
-    padding: 2.5rem 1.5rem;
-    background: radial-gradient(circle at top, #ffffff 0%, #f6f2ec 70%);
-  }
-
-  :root[data-theme="dark"] .auth {
-    background: radial-gradient(circle at top, #1a2326 0%, #0d1214 70%);
-  }
-
-  .auth-header {
-    position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-  }
-
-  .auth-card {
-    @apply grid rounded-[22px];
-    width: min(360px, 100%);
-    background: var(--bg-strong);
-    padding: 2rem 1.75rem;
-    box-shadow: var(--shadow);
-    gap: 0.45rem;
-    border: 1px solid rgba(232, 223, 211, 0.7);
-  }
-
-  :root[data-theme="dark"] .auth-card {
-    border: 1px solid rgba(35, 45, 51, 0.8);
-  }
-
-  .error {
-    color: var(--danger);
-    font-size: 0.9rem;
-    margin: 0.4rem 0 0;
-  }
-
-  .grid {
-    @apply grid gap-3;
-  }
-
-  .code-block {
-    @apply rounded-xl text-xs;
-    background: var(--accent-soft);
-    border: 1px solid var(--border);
-    padding: 0.75rem;
-    overflow-x: auto;
-    white-space: pre-wrap;
-    margin: 0.5rem 0 0;
-  }
-
-  .pill-row {
-    @apply flex flex-wrap gap-2;
-  }
-
-  .action-row {
-    @apply flex flex-wrap gap-3;
-  }
-
-  .invoice-row {
-    @apply grid gap-3;
-    padding: 0.75rem 0;
-    border-bottom: 1px dashed var(--border);
-  }
-
-  .invoice-row:last-child {
-    border-bottom: none;
-  }
-
-  .invoice-actions {
-    @apply grid gap-2;
-  }
-
-  .pay-controls {
-    @apply grid gap-2;
-  }
-
-  .pay-controls select,
-  .pay-controls input {
-    padding: 0.5rem 0.6rem;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--bg-strong);
-    color: var(--text);
-  }
-
-  .modal-backdrop {
-    @apply fixed inset-0 flex items-end justify-center;
-    background: rgba(15, 14, 12, 0.5);
-    padding: 1.5rem;
-    z-index: 10;
-  }
-
-  .modal-card {
-    @apply rounded-[22px] w-full;
-    width: min(640px, 100%);
-    background: var(--bg-strong);
-    padding: 1.5rem;
-    box-shadow: 0 24px 48px rgba(31, 31, 31, 0.2);
-    max-height: 90vh;
-    overflow-y: auto;
-    border: 1px solid var(--border);
-  }
-
-  .modal-header {
-    @apply flex items-center justify-between gap-4;
-    margin-bottom: 1rem;
-  }
-
-  .theme-toggle {
-    @apply inline-flex items-center gap-2 rounded-full font-semibold;
-    border: 1px solid var(--border);
-    background: var(--bg-strong);
-    padding: 0.4rem 0.7rem;
-    font-size: 0.8rem;
-    color: var(--text);
-    cursor: pointer;
-    box-shadow: var(--shadow-soft);
-    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
-  }
-
-  .theme-toggle.compact {
-    padding: 0.35rem 0.6rem;
-  }
-
-  .theme-toggle__icon {
-    width: 18px;
-    height: 18px;
-    border-radius: 999px;
-    background: linear-gradient(135deg, var(--accent), #f6c36b);
-    position: relative;
-  }
-
-  :root[data-theme="dark"] .theme-toggle__icon {
-    background: linear-gradient(135deg, #2b3136, var(--accent));
-  }
-
-  .theme-toggle__icon::after {
-    content: "";
-    position: absolute;
-    inset: 4px;
-    border-radius: 999px;
-    background: var(--bg-strong);
-    opacity: 0.75;
-  }
-
-  .theme-toggle__text {
-    letter-spacing: 0.02em;
-  }
-
-  .theme-toggle:active {
-    transform: translateY(1px);
-    box-shadow: none;
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 
 @layer utilities {
-  @keyframes fadeUp {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
   @keyframes float {
     0%,
     100% {
@@ -586,43 +157,16 @@
       transform: translateY(16px);
     }
   }
-}
 
-@media (min-width: 640px) {
-  .form-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 768px) {
-  .content {
-    padding: 2rem 3rem 5rem;
-  }
-
-  .metrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .card-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .invoice-row {
-    grid-template-columns: 1.2fr 0.8fr;
-    align-items: center;
-  }
-
-  .invoice-actions {
-    justify-items: end;
-  }
-
-  .pay-controls {
-    grid-template-columns: 140px 1fr auto;
-    align-items: center;
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 

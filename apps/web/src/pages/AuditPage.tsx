@@ -39,48 +39,51 @@ export const AuditPage = () => {
   }, []);
 
   return (
-    <section className="stack">
+    <section className="grid gap-5">
       <div>
-        <h2>Audit log</h2>
-        <p className="muted">Últimas ações registradas.</p>
+        <h2 className="text-[1.4rem] font-title">Audit log</h2>
+        <p className="text-sm text-muted">Últimas ações registradas.</p>
       </div>
 
       {isLoading ? (
-        <div className="card">
-          <p className="muted">Carregando logs...</p>
+        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <p className="text-sm text-muted">Carregando logs...</p>
         </div>
       ) : null}
 
       {error ? (
-        <div className="card">
-          <p className="error">{error}</p>
+        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <p className="text-sm text-danger">{error}</p>
         </div>
       ) : null}
 
       {!isLoading && !error && items.length === 0 ? (
-        <div className="card">
-          <p className="muted">Nenhum registro encontrado.</p>
+        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <p className="text-sm text-muted">Nenhum registro encontrado.</p>
         </div>
       ) : null}
 
       {!isLoading && !error
         ? items.map((item) => (
-            <div className="card stack" key={item.id}>
-              <div className="section-header">
-                <strong>{item.action}</strong>
-                <span className="muted">{item.created_at}</span>
+            <div
+              className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card"
+              key={item.id}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <strong className="text-sm font-semibold">{item.action}</strong>
+                <span className="text-xs text-muted">{item.created_at}</span>
               </div>
-              <div className="grid">
+              <div className="grid gap-3 md:grid-cols-2">
                 <div>
-                  <span className="metric-label">Entidade</span>
-                  <strong className="metric-value">
+                  <span className="text-xs text-muted">Entidade</span>
+                  <strong className="mt-1 block text-base font-semibold">
                     {item.entity} • {item.entity_id}
                   </strong>
                 </div>
               </div>
               <div>
-                <span className="metric-label">Resumo</span>
-                <pre className="code-block">
+                <span className="text-xs text-muted">Resumo</span>
+                <pre className="mt-2 rounded-xl border border-border bg-accent-soft p-3 text-xs">
                   {JSON.stringify(item.summary, null, 2)}
                 </pre>
               </div>

@@ -52,15 +52,20 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="auth">
-      <div className="auth-header">
+    <div className="relative grid min-h-screen place-items-center px-6 py-10">
+      <div className="absolute right-6 top-6">
         <ThemeToggle />
       </div>
-      <form className="auth-card" onSubmit={handleSubmit}>
-        <p className="eyebrow">poco</p>
-        <h2>Entrar</h2>
-        <p className="muted">Use sua API key para continuar.</p>
-        <label className="field">
+      <form
+        className="grid w-full max-w-[360px] gap-2 rounded-modal border border-border bg-bg-strong p-8 shadow-card"
+        onSubmit={handleSubmit}
+      >
+        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.28em] text-muted">
+          poco
+        </p>
+        <h2 className="text-[1.4rem] font-title">Entrar</h2>
+        <p className="text-sm text-muted">Use sua API key para continuar.</p>
+        <label className="mt-4 grid gap-2 text-sm">
           <span>API Key</span>
           <input
             type="password"
@@ -68,10 +73,15 @@ export const LoginPage = () => {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             autoComplete="current-password"
+            className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
           />
         </label>
-        {error ? <p className="error">{error}</p> : null}
-        <button className="primary full" type="submit" disabled={isLoading}>
+        {error ? <p className="text-sm text-danger">{error}</p> : null}
+        <button
+          className="mt-2 w-full rounded-pill bg-accent px-5 py-2.5 font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none"
+          type="submit"
+          disabled={isLoading}
+        >
           {isLoading ? "Entrando..." : "Entrar"}
         </button>
       </form>

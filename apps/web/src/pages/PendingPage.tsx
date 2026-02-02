@@ -127,30 +127,35 @@ export const PendingPage = () => {
   };
 
   return (
-    <section className="stack">
-      <div className="section-header">
+    <section className="grid gap-5">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h2>Pendências</h2>
-          <p className="muted">Casas com dados incompletos.</p>
+          <h2 className="text-[1.4rem] font-title">Pendências</h2>
+          <p className="text-sm text-muted">Casas com dados incompletos.</p>
         </div>
       </div>
 
-      {toast ? <div className="toast">{toast}</div> : null}
+      {toast ? (
+        <div className="sticky top-[72px] rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-contrast shadow-soft">
+          {toast}
+        </div>
+      ) : null}
 
-      <div className="card stack">
-        <label className="field">
+      <div className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card">
+        <label className="grid gap-2 text-sm">
           <span>Buscar</span>
           <input
             type="text"
             placeholder="Rua, número ou responsável"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
+            className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
           />
         </label>
 
-        <div className="filter-row">
+        <div className="flex flex-wrap gap-3">
           {Object.entries(reasonLabels).map(([key, label]) => (
-            <label className="toggle" key={key}>
+            <label className="flex items-center gap-2 text-sm text-muted" key={key}>
               <input
                 type="checkbox"
                 checked={filters[key as keyof typeof filters]}
@@ -168,56 +173,67 @@ export const PendingPage = () => {
       </div>
 
       {isLoading ? (
-        <div className="card">
-          <p className="muted">Carregando pendências...</p>
+        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <p className="text-sm text-muted">Carregando pendências...</p>
         </div>
       ) : null}
 
       {error ? (
-        <div className="card">
-          <p className="error">{error}</p>
+        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <p className="text-sm text-danger">{error}</p>
         </div>
       ) : null}
 
       {!isLoading && !error && filteredItems.length === 0 ? (
-        <div className="card">
-          <p className="muted">Nenhuma pendência encontrada.</p>
+        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <p className="text-sm text-muted">Nenhuma pendência encontrada.</p>
         </div>
       ) : null}
 
       {!isLoading && !error
         ? filteredItems.map((item) => (
-            <div className="card stack" key={item.id}>
-              <div className="section-header">
+            <div
+              className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card"
+              key={item.id}
+            >
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <strong>
+                  <strong className="text-sm font-semibold">
                     {item.street ?? "(sem rua)"}, {item.house_number ?? "s/n"}
                   </strong>
-                  <p className="muted">
+                  <p className="text-sm text-muted">
                     {item.responsible_current
                       ? `Responsável: ${item.responsible_current.name}`
                       : "Sem responsável atual"}
                   </p>
                 </div>
-                <div className="pill-row">
+                <div className="flex flex-wrap gap-2">
                   {item.pending_reasons.map((reason) => (
-                    <span className="status-pill status-pending" key={reason}>
+                    <span
+                      className="inline-flex items-center rounded-pill bg-accent-soft px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] text-warning"
+                      key={reason}
+                    >
                       {reasonLabels[reason] ?? reason}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <div className="action-row">
-                <Link className="ghost" to={`/houses/${item.id}`}>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  className="rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+                  to={`/houses/${item.id}`}
+                >
                   Editar casa
                 </Link>
               </div>
 
-              <div className="card muted-card">
-                <strong>Definir responsável</strong>
-                <div className="form-row">
-                  <label className="field">
+              <div className="grid gap-4 rounded-card border border-border bg-accent-soft p-5">
+                <strong className="text-sm font-semibold">
+                  Definir responsável
+                </strong>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="grid gap-2 text-sm">
                     <span>Nome</span>
                     <input
                       type="text"
@@ -228,9 +244,10 @@ export const PendingPage = () => {
                           [item.id]: event.target.value
                         }))
                       }
+                      className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
                     />
                   </label>
-                  <label className="field">
+                  <label className="grid gap-2 text-sm">
                     <span>Telefone</span>
                     <input
                       type="text"
@@ -241,15 +258,16 @@ export const PendingPage = () => {
                           [item.id]: event.target.value
                         }))
                       }
+                      className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
                     />
                   </label>
                 </div>
                 {assignError[item.id] ? (
-                  <p className="error">{assignError[item.id]}</p>
+                  <p className="text-sm text-danger">{assignError[item.id]}</p>
                 ) : null}
-                <div className="form-actions">
+                <div className="flex justify-end">
                   <button
-                    className="primary"
+                    className="rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
                     type="button"
                     disabled={assignLoading[item.id]}
                     onClick={() => handleAssign(item.id)}

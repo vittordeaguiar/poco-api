@@ -91,19 +91,27 @@ export const SyncPage = () => {
   };
 
   return (
-    <section className="stack">
+    <section className="grid gap-5">
       <div>
-        <h2>Sincronização</h2>
-        <p className="muted">Itens salvos localmente aguardando envio.</p>
+        <h2 className="text-[1.4rem] font-title">Sincronização</h2>
+        <p className="text-sm text-muted">
+          Itens salvos localmente aguardando envio.
+        </p>
       </div>
 
-      {toast ? <div className="toast">{toast}</div> : null}
+      {toast ? (
+        <div className="sticky top-[72px] rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-contrast shadow-soft">
+          {toast}
+        </div>
+      ) : null}
 
-      <div className="card stack">
-        <div className="section-header">
-          <strong>{items.length} pendências</strong>
+      <div className="grid gap-4 rounded-card border border-border bg-bg-strong p-5 shadow-card">
+        <div className="flex items-center justify-between gap-4">
+          <strong className="text-sm font-semibold">
+            {items.length} pendências
+          </strong>
           <button
-            className="primary"
+            className="rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
             type="button"
             disabled={isSyncing || items.length === 0}
             onClick={handleResendAll}
@@ -111,20 +119,23 @@ export const SyncPage = () => {
             {isSyncing ? "Reenviando..." : "Reenviar tudo"}
           </button>
         </div>
-        {error ? <p className="error">{error}</p> : null}
+        {error ? <p className="text-sm text-danger">{error}</p> : null}
       </div>
 
       {items.length === 0 ? (
-        <div className="card">
-          <p className="muted">Nenhum item pendente.</p>
+        <div className="rounded-card border border-border bg-bg-strong p-5 shadow-card">
+          <p className="text-sm text-muted">Nenhum item pendente.</p>
         </div>
       ) : (
-        <div className="stack">
+        <div className="grid gap-4">
           {summary.map((item) => (
-            <div className="card" key={item.id}>
-              <strong>{item.address}</strong>
-              <p className="muted">{item.responsible}</p>
-              <p className="muted">Salvo em {item.created_at}</p>
+            <div
+              className="rounded-card border border-border bg-bg-strong p-5 shadow-card"
+              key={item.id}
+            >
+              <strong className="text-sm font-semibold">{item.address}</strong>
+              <p className="mt-1 text-sm text-muted">{item.responsible}</p>
+              <p className="text-sm text-muted">Salvo em {item.created_at}</p>
             </div>
           ))}
         </div>
