@@ -291,7 +291,7 @@ const buildCsv = (headers: string[], rows: Array<Array<unknown>>) => {
   return [headerLine, body].filter(Boolean).join("\n");
 };
 
-const csvResponse = (filename: string, csv: string) => ({
+const csvResponse = (filename: string) => ({
   "Content-Type": "text/csv; charset=utf-8",
   "Content-Disposition": `attachment; filename="${filename}"`
 });
@@ -668,7 +668,7 @@ app.get("/export/houses.csv", authGuard, async (c) => {
       ])
     );
 
-    return c.text(csv, 200, csvResponse("houses.csv", csv));
+    return c.text(csv, 200, csvResponse("houses.csv"));
   } catch (error) {
     return c.json(
       {
@@ -766,7 +766,7 @@ app.get("/export/invoices.csv", authGuard, async (c) => {
     return c.text(
       csv,
       200,
-      csvResponse(`invoices-${year}-${String(month).padStart(2, "0")}.csv`, csv)
+      csvResponse(`invoices-${year}-${String(month).padStart(2, "0")}.csv`)
     );
   } catch (error) {
     return c.json(
@@ -857,7 +857,7 @@ app.get("/export/payments.csv", authGuard, async (c) => {
     return c.text(
       csv,
       200,
-      csvResponse(`payments-${from}-to-${to}.csv`, csv)
+      csvResponse(`payments-${from}-to-${to}.csv`)
     );
   } catch (error) {
     return c.json(
@@ -957,7 +957,7 @@ app.get("/export/late.csv", authGuard, async (c) => {
     return c.text(
       csv,
       200,
-      csvResponse(`late-${asOfYear}-${String(asOfMonth).padStart(2, "0")}.csv`, csv)
+      csvResponse(`late-${asOfYear}-${String(asOfMonth).padStart(2, "0")}.csv`)
     );
   } catch (error) {
     return c.json(
