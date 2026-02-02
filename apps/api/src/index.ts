@@ -122,6 +122,10 @@ const createPersonSchema = z
   .object({
     name: z.string().trim().min(1),
     phone: z.string().trim().min(1).optional(),
+    mobile: z.string().trim().min(1).optional(),
+    cpf: z.string().trim().min(1).optional(),
+    email: z.string().trim().min(1).optional(),
+    rg: z.string().trim().min(1).optional(),
     notes: z.string().trim().min(1).optional()
   })
   .strict();
@@ -316,24 +320,39 @@ const findPersonByPhone = async (db: D1Database, phone: string) => {
     .prepare(
       `SELECT id, name, phone
        FROM people
-       WHERE phone IS NOT NULL
+       WHERE (
+         phone IS NOT NULL
          AND REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '(', ''), ')', ''), '+', '') = ?
+       )
+       OR (
+         mobile IS NOT NULL
+         AND REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(mobile, ' ', ''), '-', ''), '(', ''), ')', ''), '+', '') = ?
+       )
        LIMIT 1`
     )
-    .bind(normalized)
+    .bind(normalized, normalized)
     .first<{ id: string; name: string; phone: string }>();
 };
 
 const findPersonById = async (db: D1Database, id: string) =>
   db
     .prepare(
-      `SELECT id, name, phone, notes
+      `SELECT id, name, phone, mobile, cpf, email, rg, notes
        FROM people
        WHERE id = ?
        LIMIT 1`
     )
     .bind(id)
-    .first<{ id: string; name: string; phone: string | null; notes: string | null }>();
+    .first<{
+      id: string;
+      name: string;
+      phone: string | null;
+      mobile: string | null;
+      cpf: string | null;
+      email: string | null;
+      rg: string | null;
+      notes: string | null;
+    }>();
 
 const findPeopleByName = async (db: D1Database, name: string) => {
   const query = name.trim();
@@ -342,7 +361,7 @@ const findPeopleByName = async (db: D1Database, name: string) => {
   }
   const result = await db
     .prepare(
-      `SELECT id, name, phone
+      `SELECT id, name, phone, mobile, cpf, email, rg
        FROM people
        WHERE name LIKE ?
        ORDER BY name
@@ -354,7 +373,11 @@ const findPeopleByName = async (db: D1Database, name: string) => {
   return result.results.map((row) => ({
     id: row.id as string,
     name: row.name as string,
-    phone: row.phone as string | null
+    phone: row.phone as string | null,
+    mobile: row.mobile as string | null,
+    cpf: row.cpf as string | null,
+    email: row.email as string | null,
+    rg: row.rg as string | null
   }));
 };
 
@@ -421,8 +444,17 @@ app.get("/people", authGuard, async (c) => {
   const params: Array<string> = [];
 
   if (search) {
-    filters.push("(p.name LIKE ? OR p.phone LIKE ?)");
-    params.push(`%${search}%`, `%${search}%`);
+    filters.push(
+      "(p.name LIKE ? OR p.phone LIKE ? OR p.mobile LIKE ? OR p.cpf LIKE ? OR p.email LIKE ? OR p.rg LIKE ?)"
+    );
+    params.push(
+      `%${search}%`,
+      `%${search}%`,
+      `%${search}%`,
+      `%${search}%`,
+      `%${search}%`,
+      `%${search}%`
+    );
   }
 
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
@@ -434,6 +466,10 @@ app.get("/people", authGuard, async (c) => {
            p.id,
            p.name,
            p.phone,
+           p.mobile,
+           p.cpf,
+           p.email,
+           p.rg,
            p.notes,
            COUNT(DISTINCT hr.house_id) AS active_houses
          FROM people p
@@ -450,6 +486,10 @@ app.get("/people", authGuard, async (c) => {
       id: row.id as string,
       name: row.name as string,
       phone: row.phone as string | null,
+      mobile: row.mobile as string | null,
+      cpf: row.cpf as string | null,
+      email: row.email as string | null,
+      rg: row.rg as string | null,
       notes: row.notes as string | null,
       active_houses: Number(row.active_houses ?? 0)
     }));
@@ -494,7 +534,7 @@ app.post("/people", authGuard, async (c) => {
     );
   }
 
-  const { name, phone, notes } = parsed.data;
+  const { name, phone, mobile, cpf, email, rg, notes } = parsed.data;
   let reusedPerson = false;
   let personId: string;
 
@@ -512,9 +552,21 @@ app.post("/people", authGuard, async (c) => {
 
   if (!reusedPerson) {
     const normalizedPhone = normalizePhone(phone);
+    const normalizedMobile = normalizePhone(mobile);
     const insertStatement = c.env.poco_db
-      .prepare("INSERT INTO people (id, name, phone, notes) VALUES (?, ?, ?, ?)")
-      .bind(personId, name, normalizedPhone, notes ?? null);
+      .prepare(
+        "INSERT INTO people (id, name, phone, mobile, cpf, email, rg, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+      )
+      .bind(
+        personId,
+        name,
+        normalizedPhone,
+        normalizedMobile,
+        cpf ?? null,
+        email ?? null,
+        rg ?? null,
+        notes ?? null
+      );
 
     const auditStatement = createAuditStatement(
       c.env.poco_db,
@@ -524,6 +576,10 @@ app.post("/people", authGuard, async (c) => {
       {
         name,
         phone: normalizedPhone,
+        mobile: normalizedMobile,
+        cpf: cpf ?? null,
+        email: email ?? null,
+        rg: rg ?? null,
         notes: notes ?? null
       }
     );

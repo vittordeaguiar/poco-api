@@ -13,6 +13,10 @@ type Person = {
   id: string;
   name: string;
   phone: string | null;
+  mobile: string | null;
+  cpf: string | null;
+  email: string | null;
+  rg: string | null;
   notes: string | null;
   active_houses: number;
 };
@@ -46,6 +50,10 @@ export const PeoplePage = () => {
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [email, setEmail] = useState("");
+  const [rg, setRg] = useState("");
   const [notes, setNotes] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -140,12 +148,20 @@ export const PeoplePage = () => {
         body: JSON.stringify({
           name: name.trim(),
           phone: phone.trim() || undefined,
+          mobile: mobile.trim() || undefined,
+          cpf: cpf.trim() || undefined,
+          email: email.trim() || undefined,
+          rg: rg.trim() || undefined,
           notes: notes.trim() || undefined
         })
       });
       showToast("Responsável cadastrado com sucesso!");
       setName("");
       setPhone("");
+      setMobile("");
+      setCpf("");
+      setEmail("");
+      setRg("");
       setNotes("");
       loadPeople(search);
     } catch (error) {
@@ -256,6 +272,47 @@ export const PeoplePage = () => {
               />
             </label>
             <label className="grid gap-2 text-sm">
+              <span>Celular</span>
+              <input
+                type="tel"
+                placeholder="(00) 90000-0000"
+                value={mobile}
+                onChange={(event) => setMobile(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span>Email</span>
+              <input
+                type="email"
+                placeholder="exemplo@email.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span>CPF</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="000.000.000-00"
+                value={cpf}
+                onChange={(event) => setCpf(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span>RG</span>
+              <input
+                type="text"
+                placeholder="00.000.000-0"
+                value={rg}
+                onChange={(event) => setRg(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+            <label className="grid gap-2 text-sm">
               <span>Observações</span>
               <textarea
                 placeholder="Ex: prefere contato por WhatsApp"
@@ -335,6 +392,14 @@ export const PeoplePage = () => {
                     </strong>
                     <p className="text-sm text-muted">
                       {person.phone ?? "Sem telefone"}
+                      {person.mobile ? ` · Cel: ${person.mobile}` : ""}
+                    </p>
+                    <p className="text-sm text-muted">
+                      {person.email ?? "Sem email"}
+                    </p>
+                    <p className="text-xs text-muted">
+                      {person.cpf ? `CPF: ${person.cpf}` : "CPF não informado"}
+                      {person.rg ? ` · RG: ${person.rg}` : ""}
                     </p>
                     <p className="text-xs text-muted">
                       Casas ativas: {person.active_houses}
