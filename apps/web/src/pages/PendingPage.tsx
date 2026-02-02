@@ -16,6 +16,7 @@ const reasonLabels: Record<string, string> = {
 
 type PendingItem = {
   id: string;
+  house_id?: string | null;
   street: string | null;
   house_number: string | null;
   status: string;
@@ -207,11 +208,13 @@ export const PendingPage = () => {
       ) : null}
 
       {!isLoading && !error
-        ? filteredItems.map((item) => (
-            <div
-              className="grid gap-4 rounded-card surface-panel p-5"
-              key={item.id}
-            >
+        ? filteredItems.map((item) => {
+            const houseKey = item.house_id ?? item.id;
+            return (
+              <div
+                className="grid gap-4 rounded-card surface-panel p-5"
+                key={houseKey}
+              >
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <strong className="text-sm font-semibold">
@@ -238,7 +241,7 @@ export const PendingPage = () => {
               <div className="flex flex-wrap gap-3">
                 <Link
                   className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
-                  to={`/houses/${item.id}`}
+                  to={`/houses/${houseKey}`}
                 >
                   <UserPlus className="h-4 w-4" />
                   Editar casa
@@ -255,11 +258,11 @@ export const PendingPage = () => {
                     <span>Nome</span>
                     <input
                       type="text"
-                      value={assignName[item.id] ?? ""}
+                      value={assignName[houseKey] ?? ""}
                       onChange={(event) =>
                         setAssignName((prev) => ({
                           ...prev,
-                          [item.id]: event.target.value
+                          [houseKey]: event.target.value
                         }))
                       }
                       className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
@@ -269,36 +272,37 @@ export const PendingPage = () => {
                     <span>Telefone</span>
                     <input
                       type="text"
-                      value={assignPhone[item.id] ?? ""}
+                      value={assignPhone[houseKey] ?? ""}
                       onChange={(event) =>
                         setAssignPhone((prev) => ({
                           ...prev,
-                          [item.id]: event.target.value
+                          [houseKey]: event.target.value
                         }))
                       }
                       className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
                     />
                   </label>
                 </div>
-                {assignError[item.id] ? (
-                  <p className="text-sm text-danger">{assignError[item.id]}</p>
+                {assignError[houseKey] ? (
+                  <p className="text-sm text-danger">{assignError[houseKey]}</p>
                 ) : null}
                 <div className="flex justify-end">
                   <button
                     className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
                     type="button"
-                    disabled={assignLoading[item.id]}
-                    onClick={() => handleAssign(item.id)}
+                    disabled={assignLoading[houseKey]}
+                    onClick={() => handleAssign(houseKey)}
                   >
                     <UserPlus className="h-4 w-4" />
-                    {assignLoading[item.id]
+                    {assignLoading[houseKey]
                       ? "Salvando..."
                       : "Salvar responsável"}
                   </button>
                 </div>
               </div>
             </div>
-          ))
+          );
+        })
         : null}
     </section>
   );

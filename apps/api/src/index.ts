@@ -1081,6 +1081,7 @@ app.get("/houses/pending", authGuard, async (c) => {
 
       return {
         id: row.id,
+        house_id: row.id,
         street: row.street,
         house_number: row.house_number,
         complement: row.complement,
