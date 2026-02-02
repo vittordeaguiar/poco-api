@@ -7,7 +7,10 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "lint": "eslint . --ext .ts",
-    "test": "tsx --test"
+    "test": "tsx --test",
+    "migrate:local": "wrangler d1 migrations apply poco-db --local",
+    "migrate:remote": "wrangler d1 migrations apply poco-db --remote",
+    "migrate": "npm run migrate:local && npm run migrate:remote"
   },
   "dependencies": {
     "hono": "^4.6.8",
