@@ -10,3 +10,5 @@ Sistema simples para gestão de casas e cobranças de um bairro, com API e paine
 - API: Cloudflare Workers, Hono, Zod, D1 (SQLite), TypeScript.
 - Web: React, React Router, Vite, Tailwind CSS, TypeScript.
 - Deploy: Cloudflare Workers (API) e Cloudflare Pages (Web).
+
+by: @vittordeaguiar
