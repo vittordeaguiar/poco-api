@@ -182,8 +182,6 @@ export const HouseDetailPage = () => {
         return "INATIVO";
       case "pending":
         return "PENDENTE";
-      default:
-        return status.toUpperCase();
     }
   };
 
