@@ -5,7 +5,7 @@ import {
   UserPlus
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 
 const reasonLabels: Record<string, string> = {
@@ -31,6 +31,7 @@ type PendingResponse = {
 };
 
 export const PendingPage = () => {
+  const location = useLocation();
   const [items, setItems] = useState<PendingItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +67,13 @@ export const PendingPage = () => {
   useEffect(() => {
     loadPending();
   }, []);
+
+  useEffect(() => {
+    const state = location.state as { toast?: string } | null;
+    if (state?.toast) {
+      setToast(state.toast);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     if (!toast) {
@@ -242,6 +250,7 @@ export const PendingPage = () => {
                 <Link
                   className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
                   to={`/houses/${houseKey}`}
+                  state={{ fromPending: true, openEdit: true }}
                 >
                   <UserPlus className="h-4 w-4" />
                   Editar casa

@@ -10,7 +10,7 @@ import {
   Users
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { formatCurrency, formatPeriod } from "../lib/format";
 import { Modal } from "../ui/Modal";
@@ -67,6 +67,7 @@ const paymentMethods = [
 export const HouseDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [data, setData] = useState<HouseResponse["data"] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -89,6 +90,10 @@ export const HouseDetailPage = () => {
   const [editStatus, setEditStatus] =
     useState<HouseDetail["status"]>("active");
 
+  const cameFromPending = Boolean(
+    (location.state as { fromPending?: boolean } | null)?.fromPending
+  );
+
   const loadHouse = async () => {
     if (!id) {
       return;
@@ -109,6 +114,13 @@ export const HouseDetailPage = () => {
   useEffect(() => {
     loadHouse();
   }, [id]);
+
+  useEffect(() => {
+    const state = location.state as { openEdit?: boolean } | null;
+    if (state?.openEdit && data?.house && !isEditOpen) {
+      openEditModal();
+    }
+  }, [data, isEditOpen, location.state]);
 
   useEffect(() => {
     if (!toast) {
@@ -185,6 +197,21 @@ export const HouseDetailPage = () => {
     }
   };
 
+  const invoiceStatusLabel = (
+    status: HouseResponse["data"]["invoices"][number]["status"]
+  ) => {
+    switch (status) {
+      case "open":
+        return "EM ABERTO";
+      case "paid":
+        return "PAGO";
+      case "void":
+        return "CANCELADO";
+      default:
+        return "PENDENTE";
+    }
+  };
+
   const openEditModal = () => {
     if (!data?.house) {
       return;
@@ -236,6 +263,13 @@ export const HouseDetailPage = () => {
           }
         })
       });
+      if (cameFromPending) {
+        navigate("/pending", {
+          replace: true,
+          state: { toast: "Casa atualizada com sucesso." }
+        });
+        return;
+      }
       setToast("Casa atualizada com sucesso.");
       setIsEditOpen(false);
       await loadHouse();
@@ -299,7 +333,7 @@ export const HouseDetailPage = () => {
           </button>
           <Link
             className="inline-flex items-center gap-2 text-sm font-semibold text-text"
-            to="/houses"
+            to={cameFromPending ? "/pending" : "/houses"}
           >
             <ArrowLeft className="h-4 w-4" />
             Voltar
@@ -416,7 +450,7 @@ export const HouseDetailPage = () => {
                         invoice.status
                       )}`}
                     >
-                      {invoice.status}
+                      {invoiceStatusLabel(invoice.status)}
                     </span>
                     {invoice.status === "paid" ? (
                       <span className="text-sm text-muted">

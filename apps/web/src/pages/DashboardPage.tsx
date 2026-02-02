@@ -1,13 +1,21 @@
-import { BarChart3, Download } from "lucide-react";
-import { useEffect, useState } from "react";
+import { BarChart3, FilePlus2, Download } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { apiDownload, apiFetch } from "../lib/api";
 import { formatCurrency, formatMonthLabel } from "../lib/format";
+import { Modal } from "../ui/Modal";
 
 type DashboardResponse = {
   data: {
     received_cents: number;
     open_cents: number;
     houses_late_count: number;
+  };
+};
+
+type GenerateInvoicesResponse = {
+  data: {
+    created: number;
+    skipped_existing: number;
   };
 };
 
@@ -20,6 +28,14 @@ export const DashboardPage = () => {
   const [data, setData] = useState<DashboardResponse["data"] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isGenerateOpen, setIsGenerateOpen] = useState(false);
+  const [generateYear, setGenerateYear] = useState(year);
+  const [generateMonth, setGenerateMonth] = useState(month);
+  const [includePending, setIncludePending] = useState(false);
+  const [generateLoading, setGenerateLoading] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [generateResult, setGenerateResult] =
+    useState<GenerateInvoicesResponse["data"] | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -58,6 +74,53 @@ export const DashboardPage = () => {
     );
   };
 
+  const monthOptions = useMemo(() => {
+    return Array.from({ length: 12 }, (_, index) => {
+      const value = index + 1;
+      const label = new Intl.DateTimeFormat("pt-BR", {
+        month: "long"
+      }).format(new Date(2024, index, 1));
+      return { value, label };
+    });
+  }, []);
+
+  const handleOpenGenerate = () => {
+    setGenerateYear(year);
+    setGenerateMonth(month);
+    setIncludePending(false);
+    setGenerateError(null);
+    setGenerateResult(null);
+    setIsGenerateOpen(true);
+  };
+
+  const handleGenerateInvoices = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+    setGenerateError(null);
+    setGenerateResult(null);
+    setGenerateLoading(true);
+
+    try {
+      const response = (await apiFetch("/invoices/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          year: generateYear,
+          month: generateMonth,
+          include_pending: includePending
+        })
+      })) as GenerateInvoicesResponse;
+      setGenerateResult(response.data);
+    } catch (err) {
+      setGenerateError(
+        err instanceof Error ? err.message : "Falha ao gerar faturas."
+      );
+    } finally {
+      setGenerateLoading(false);
+    }
+  };
+
   return (
     <section className="grid gap-5">
       <div className="flex items-start justify-between gap-4">
@@ -69,6 +132,14 @@ export const DashboardPage = () => {
           <p className="text-sm text-muted">Resumo de {monthLabel}</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button
+            className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+            type="button"
+            onClick={handleOpenGenerate}
+          >
+            <FilePlus2 className="h-4 w-4" />
+            Gerar faturas do mês
+          </button>
           <button
             className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
             type="button"
@@ -122,6 +193,89 @@ export const DashboardPage = () => {
           </div>
         </div>
       ) : null}
+
+      <Modal
+        isOpen={isGenerateOpen}
+        title="Gerar faturas do mês"
+        eyebrow="Operação mensal"
+        onClose={() => setIsGenerateOpen(false)}
+        footer={
+          <button
+            className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+            type="submit"
+            form="generate-invoices-form"
+            disabled={generateLoading}
+          >
+            <FilePlus2 className="h-4 w-4" />
+            {generateLoading ? "Gerando..." : "Confirmar geração"}
+          </button>
+        }
+      >
+        <form
+          className="grid gap-4"
+          id="generate-invoices-form"
+          onSubmit={handleGenerateInvoices}
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2 text-sm">
+              <span>Mês</span>
+              <select
+                value={generateMonth}
+                onChange={(event) =>
+                  setGenerateMonth(Number(event.target.value))
+                }
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              >
+                {monthOptions.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span>Ano</span>
+              <input
+                type="number"
+                min={2020}
+                value={generateYear}
+                onChange={(event) =>
+                  setGenerateYear(Number(event.target.value))
+                }
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+          </div>
+
+          <label className="flex items-center gap-2 text-sm text-muted">
+            <input
+              type="checkbox"
+              checked={includePending}
+              onChange={(event) => setIncludePending(event.target.checked)}
+            />
+            <span>Incluir casas pendentes</span>
+          </label>
+
+          <p className="text-sm text-muted">
+            Esta operação é idempotente: rodar novamente não cria faturas
+            duplicadas.
+          </p>
+
+          {generateResult ? (
+            <div className="rounded-card border border-border bg-accent-soft p-4 text-sm">
+              <p className="font-semibold text-text">Geração concluída.</p>
+              <p className="text-muted">
+                Criadas: {generateResult.created} • Já existentes:{" "}
+                {generateResult.skipped_existing}
+              </p>
+            </div>
+          ) : null}
+
+          {generateError ? (
+            <p className="text-sm text-danger">{generateError}</p>
+          ) : null}
+        </form>
+      </Modal>
     </section>
   );
 };

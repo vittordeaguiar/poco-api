@@ -172,14 +172,13 @@ export const HousesPage = () => {
     return null;
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const saveHouse = async () => {
     setFormError(null);
 
     const validationError = validateForm();
     if (validationError) {
       setFormError(validationError);
-      return;
+      return false;
     }
 
     const amountValue = monthlyAmount.trim()
@@ -234,6 +233,7 @@ export const HousesPage = () => {
       resetAfterSave(addressSnapshot);
       showToast("Casa cadastrada com sucesso!");
       loadHouses();
+      return true;
     } catch (error) {
       if (isNetworkError(error)) {
         addToQueue({
@@ -248,14 +248,25 @@ export const HousesPage = () => {
         showToast(
           `Sem conexão. Salvo na fila para sincronizar (${count} pendências).`
         );
+        return true;
       } else {
         setFormError(
           error instanceof Error ? error.message : "Falha ao salvar casa."
         );
       }
+      return false;
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await saveHouse();
+  };
+
+  const handleSaveNext = async () => {
+    await saveHouse();
   };
 
   return (
@@ -335,6 +346,15 @@ export const HousesPage = () => {
         onClose={() => setIsModalOpen(false)}
         footer={
           <div className="flex justify-end">
+            <button
+              className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+              type="button"
+              onClick={handleSaveNext}
+              disabled={isSubmitting}
+            >
+              <Save className="h-4 w-4" />
+              {isSubmitting ? "Salvando..." : "Salvar e próxima"}
+            </button>
             <button
               className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
               type="submit"
