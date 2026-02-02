@@ -39,8 +39,8 @@ export const Modal = ({
       aria-labelledby={titleId}
       onClick={handleBackdropClick}
     >
-      <div className="flex max-h-[70vh] w-1/2 flex-col overflow-hidden rounded-modal surface-panel">
-        <div className="flex items-center justify-between gap-4 px-6 pb-4 pt-6">
+      <div className="flex max-h-[85vh] w-full max-w-[640px] flex-col overflow-hidden rounded-modal surface-panel">
+        <div className="flex items-center justify-between gap-4 px-5 pb-4 pt-6 sm:px-6">
           <div>
             {eyebrow ? (
               <p className="text-[0.62rem] font-semibold uppercase tracking-[0.28em] text-muted">
@@ -57,13 +57,13 @@ export const Modal = ({
               onClick={onClose}
             >
               <X className="h-4 w-4" />
-              <span>Fechar</span>
+              <span className="hidden sm:inline">Fechar</span>
             </button>
           ) : null}
         </div>
-        <div className="flex-1 overflow-y-auto px-6 pb-6">{children}</div>
+        <div className="flex-1 overflow-y-auto px-5 pb-6 sm:px-6">{children}</div>
         {footer || onClose ? (
-          <div className="border-t border-border bg-bg-strong px-6 py-4">
+          <div className="border-t border-border bg-bg-strong px-5 py-4 sm:px-6">
             <div className="flex flex-wrap items-center justify-end gap-3">
               {onClose ? (
                 <button
@@ -72,7 +72,7 @@ export const Modal = ({
                   onClick={onClose}
                 >
                   <X className="h-4 w-4" />
-                  Cancelar
+                  <span className="hidden sm:inline">Cancelar</span>
                 </button>
               ) : null}
               {footer}
