@@ -57,6 +57,20 @@ const authGuard: MiddlewareHandler<{ Bindings: Env }> = async (c, next) => {
   await next();
 };
 
+const responsibleInputSchema = z.union([
+  z
+    .object({
+      person_id: z.string().trim().min(1)
+    })
+    .strict(),
+  z
+    .object({
+      name: z.string().trim().min(1),
+      phone: z.string().trim().min(1).optional()
+    })
+    .strict()
+]);
+
 const houseQuickSchema = z
   .object({
     house: z
@@ -69,12 +83,7 @@ const houseQuickSchema = z
         monthly_amount_cents: z.number().int().positive().optional()
       })
       .default({}),
-    responsible: z
-      .object({
-        name: z.string().trim().min(1),
-        phone: z.string().trim().min(1).optional()
-      })
-      .optional()
+    responsible: responsibleInputSchema.optional()
   })
   .strict();
 
@@ -95,16 +104,25 @@ const houseUpdateSchema = z
   })
   .strict();
 
-const assignResponsibleSchema = z
-  .object({
-    name: z.string().trim().min(1),
-    phone: z.string().trim().min(1).optional()
-  })
-  .strict();
+const assignResponsibleSchema = responsibleInputSchema;
 
 const authLoginSchema = z
   .object({
     password: z.string().trim().min(1)
+  })
+  .strict();
+
+const peopleQuerySchema = z
+  .object({
+    search: z.string().trim().min(1).optional()
+  })
+  .strict();
+
+const createPersonSchema = z
+  .object({
+    name: z.string().trim().min(1),
+    phone: z.string().trim().min(1).optional(),
+    notes: z.string().trim().min(1).optional()
   })
   .strict();
 
@@ -306,6 +324,17 @@ const findPersonByPhone = async (db: D1Database, phone: string) => {
     .first<{ id: string; name: string; phone: string }>();
 };
 
+const findPersonById = async (db: D1Database, id: string) =>
+  db
+    .prepare(
+      `SELECT id, name, phone, notes
+       FROM people
+       WHERE id = ?
+       LIMIT 1`
+    )
+    .bind(id)
+    .first<{ id: string; name: string; phone: string | null; notes: string | null }>();
+
 const findPeopleByName = async (db: D1Database, name: string) => {
   const query = name.trim();
   if (!query) {
@@ -370,6 +399,158 @@ app.post("/auth/login", async (c) => {
   }
 
   return c.json({ ok: true, data: { token: apiKey } });
+});
+
+app.get("/people", authGuard, async (c) => {
+  const parsed = peopleQuerySchema.safeParse(c.req.query());
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid query parameters",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const search = parsed.data.search?.trim();
+  const filters: string[] = [];
+  const params: Array<string> = [];
+
+  if (search) {
+    filters.push("(p.name LIKE ? OR p.phone LIKE ?)");
+    params.push(`%${search}%`, `%${search}%`);
+  }
+
+  const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
+
+  try {
+    const rows = await c.env.poco_db
+      .prepare(
+        `SELECT
+           p.id,
+           p.name,
+           p.phone,
+           p.notes,
+           COUNT(DISTINCT hr.house_id) AS active_houses
+         FROM people p
+         LEFT JOIN house_responsibilities hr
+           ON hr.person_id = p.id AND hr.end_at IS NULL
+         ${whereClause}
+         GROUP BY p.id
+         ORDER BY p.name`
+      )
+      .bind(...params)
+      .all();
+
+    const items = rows.results.map((row) => ({
+      id: row.id as string,
+      name: row.name as string,
+      phone: row.phone as string | null,
+      notes: row.notes as string | null,
+      active_houses: Number(row.active_houses ?? 0)
+    }));
+
+    return c.json({ ok: true, data: { items } });
+  } catch (error) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while listing people",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+});
+
+app.post("/people", authGuard, async (c) => {
+  let payload: unknown;
+  try {
+    payload = await c.req.json();
+  } catch {
+    return c.json(
+      { ok: false, error: { message: "Invalid JSON body" } },
+      400
+    );
+  }
+
+  const parsed = createPersonSchema.safeParse(payload);
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid request body",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  const { name, phone, notes } = parsed.data;
+  let reusedPerson = false;
+  let personId: string;
+
+  if (phone) {
+    const existing = await findPersonByPhone(c.env.poco_db, phone);
+    if (existing) {
+      reusedPerson = true;
+      personId = existing.id;
+    } else {
+      personId = crypto.randomUUID();
+    }
+  } else {
+    personId = crypto.randomUUID();
+  }
+
+  if (!reusedPerson) {
+    const normalizedPhone = normalizePhone(phone);
+    const insertStatement = c.env.poco_db
+      .prepare("INSERT INTO people (id, name, phone, notes) VALUES (?, ?, ?, ?)")
+      .bind(personId, name, normalizedPhone, notes ?? null);
+
+    const auditStatement = createAuditStatement(
+      c.env.poco_db,
+      "create_person",
+      "person",
+      personId,
+      {
+        name,
+        phone: normalizedPhone,
+        notes: notes ?? null
+      }
+    );
+
+    try {
+      await c.env.poco_db.batch([insertStatement, auditStatement]);
+    } catch (error) {
+      return c.json(
+        {
+          ok: false,
+          error: {
+            message: "Database error while creating person",
+            details: error instanceof Error ? error.message : String(error)
+          }
+        },
+        500
+      );
+    }
+  }
+
+  return c.json({
+    ok: true,
+    data: {
+      id: personId,
+      reused_person: reusedPerson
+    }
+  });
 });
 
 app.get("/export/houses.csv", authGuard, async (c) => {
@@ -1435,24 +1616,42 @@ app.post("/houses/:id/responsible", authGuard, async (c) => {
     );
   }
 
-  const { name, phone } = parsed.data;
+  const input = parsed.data;
   let personId: string | null = null;
   let reusedPerson = false;
   let suggestions: Array<{ id: string; name: string; phone: string | null }> =
     [];
+  let name: string;
+  let phone: string | undefined;
 
-  if (phone) {
-    const existing = await findPersonByPhone(c.env.poco_db, phone);
-    if (existing) {
-      personId = existing.id;
-      reusedPerson = true;
+  if ("person_id" in input) {
+    const person = await findPersonById(c.env.poco_db, input.person_id);
+    if (!person) {
+      return c.json(
+        { ok: false, error: { message: "Responsible person not found" } },
+        404
+      );
     }
+    personId = person.id;
+    name = person.name;
+    phone = person.phone ?? undefined;
+    reusedPerson = true;
   } else {
-    suggestions = await findPeopleByName(c.env.poco_db, name);
-  }
+    name = input.name;
+    phone = input.phone;
+    if (phone) {
+      const existing = await findPersonByPhone(c.env.poco_db, phone);
+      if (existing) {
+        personId = existing.id;
+        reusedPerson = true;
+      }
+    } else {
+      suggestions = await findPeopleByName(c.env.poco_db, name);
+    }
 
-  if (!personId) {
-    personId = crypto.randomUUID();
+    if (!personId) {
+      personId = crypto.randomUUID();
+    }
   }
 
   const now = new Date().toISOString();
@@ -1550,7 +1749,8 @@ app.post("/houses/quick", authGuard, async (c) => {
   const { house, responsible } = parsed.data;
   const hasStreet = Boolean(house.street?.trim());
   const hasNumber = Boolean(house.house_number?.trim());
-  const hasResponsible = Boolean(responsible?.name?.trim());
+  const hasResponsible =
+    !!responsible && ("person_id" in responsible || responsible.name?.trim());
 
   const status =
     hasStreet && hasNumber && hasResponsible ? "active" : "pending";
@@ -1567,20 +1767,41 @@ app.post("/houses/quick", authGuard, async (c) => {
   let reusedPerson = false;
   let suggestions: Array<{ id: string; name: string; phone: string | null }> =
     [];
+  let responsibleName: string | null = null;
+  let responsiblePhone: string | null = null;
 
   if (responsible) {
-    if (responsible.phone) {
-      const existing = await findPersonByPhone(c.env.poco_db, responsible.phone);
-      if (existing) {
-        personId = existing.id;
-        reusedPerson = true;
+    if ("person_id" in responsible) {
+      const person = await findPersonById(c.env.poco_db, responsible.person_id);
+      if (!person) {
+        return c.json(
+          { ok: false, error: { message: "Responsible person not found" } },
+          404
+        );
       }
+      personId = person.id;
+      reusedPerson = true;
+      responsibleName = person.name;
+      responsiblePhone = person.phone ?? null;
     } else {
-      suggestions = await findPeopleByName(c.env.poco_db, responsible.name);
-    }
+      responsibleName = responsible.name;
+      responsiblePhone = responsible.phone ?? null;
+      if (responsible.phone) {
+        const existing = await findPersonByPhone(
+          c.env.poco_db,
+          responsible.phone
+        );
+        if (existing) {
+          personId = existing.id;
+          reusedPerson = true;
+        }
+      } else {
+        suggestions = await findPeopleByName(c.env.poco_db, responsible.name);
+      }
 
-    if (!personId) {
-      personId = crypto.randomUUID();
+      if (!personId) {
+        personId = crypto.randomUUID();
+      }
     }
   }
 
@@ -1601,11 +1822,11 @@ app.post("/houses/quick", authGuard, async (c) => {
 
   if (responsible && personId) {
     if (!reusedPerson) {
-      const normalizedPhone = normalizePhone(responsible.phone);
+      const normalizedPhone = normalizePhone(responsiblePhone);
       statements.push(
         c.env.poco_db.prepare(
           "INSERT INTO people (id, name, phone) VALUES (?, ?, ?)"
-        ).bind(personId, responsible.name, normalizedPhone)
+        ).bind(personId, responsibleName ?? "", normalizedPhone)
       );
     }
 
@@ -1629,8 +1850,8 @@ app.post("/houses/quick", authGuard, async (c) => {
       house_number: house.house_number ?? null,
       status,
       monthly_amount_cents: monthlyAmount,
-      responsible_name: responsible?.name ?? null,
-      responsible_phone: normalizePhone(responsible?.phone) ?? null,
+      responsible_name: responsibleName ?? null,
+      responsible_phone: normalizePhone(responsiblePhone) ?? null,
       person_id: personId
     })
   );
