@@ -10,7 +10,8 @@ import {
   Home,
   RefreshCw,
   Timer,
-  X
+  X,
+  Users
 } from "lucide-react";
 import { clearToken } from "../lib/auth";
 import { getQueueCount, subscribeQueue } from "../lib/offlineQueue";
@@ -19,6 +20,7 @@ import { ThemeToggle } from "./ThemeToggle";
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/houses", label: "Casas", icon: Home },
+  { to: "/people", label: "Responsáveis", icon: Users },
   { to: "/pending", label: "Pendências", icon: AlertTriangle },
   { to: "/audit", label: "Audit", icon: ClipboardCheck },
   { to: "/sync", label: "Sync", icon: RefreshCw },
