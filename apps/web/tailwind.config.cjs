@@ -26,23 +26,18 @@ module.exports = {
         soft: "var(--shadow-soft)"
       },
       borderRadius: {
-        card: "20px",
-        modal: "22px",
+        card: "14px",
+        modal: "16px",
         pill: "999px"
       },
       keyframes: {
-        float: {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(16px)" }
-        },
         "fade-up": {
-          from: { opacity: "0", transform: "translateY(8px)" },
+          from: { opacity: "0", transform: "translateY(6px)" },
           to: { opacity: "1", transform: "translateY(0)" }
         }
       },
       animation: {
-        float: "float 14s ease-in-out infinite",
-        "fade-up": "fade-up 240ms ease"
+        "fade-up": "fade-up 180ms ease"
       }
     }
   },

@@ -273,7 +273,7 @@ export const HousesPage = () => {
     <section className="grid gap-5">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+          <h2 className="inline-flex items-center gap-2 text-[1.3rem] font-title">
             <Home className="h-5 w-5 text-accent" />
             Casas
           </h2>
@@ -281,7 +281,7 @@ export const HousesPage = () => {
         </div>
         <div className="flex flex-wrap gap-2">
           <button
-            className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+            className="btn"
             type="button"
             onClick={() => apiDownload("/export/houses.csv", "houses.csv")}
           >
@@ -289,7 +289,7 @@ export const HousesPage = () => {
             Exportar CSV
           </button>
           <button
-            className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none"
+            className="btn btn-primary"
             onClick={() => setIsModalOpen(true)}
           >
             <Plus className="h-4 w-4" />
@@ -299,12 +299,12 @@ export const HousesPage = () => {
       </header>
 
       {toast ? (
-        <div className="sticky top-[72px] rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-contrast shadow-soft">
+        <div className="sticky top-[72px] rounded-lg border border-border bg-bg-strong px-4 py-3 text-sm font-semibold text-text">
           {toast}
         </div>
       ) : null}
 
-      <div className="rounded-card surface-panel p-5">
+      <div className="card rounded-card p-5">
         {isLoading ? <p className="text-sm text-muted">Carregando...</p> : null}
         {loadError ? <p className="text-sm text-danger">{loadError}</p> : null}
         {!isLoading && !loadError && houses.length === 0 ? (
@@ -328,10 +328,7 @@ export const HousesPage = () => {
                     : "Sem responsável"}
                 </p>
               </div>
-              <Link
-                className="inline-flex items-center gap-2 text-sm font-semibold text-text transition hover:opacity-80"
-                to={`/houses/${house.id}`}
-              >
+              <Link className="btn btn-sm" to={`/houses/${house.id}`}>
                 <Eye className="h-4 w-4" />
                 Ver
               </Link>
@@ -345,9 +342,9 @@ export const HousesPage = () => {
         eyebrow="Cadastro rápido"
         onClose={() => setIsModalOpen(false)}
         footer={
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
             <button
-              className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+              className="btn"
               type="button"
               onClick={handleSaveNext}
               disabled={isSubmitting}
@@ -356,7 +353,7 @@ export const HousesPage = () => {
               {isSubmitting ? "Salvando..." : "Salvar e próxima"}
             </button>
             <button
-              className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn btn-primary"
               type="submit"
               form={formId}
               disabled={isSubmitting}
@@ -378,7 +375,7 @@ export const HousesPage = () => {
               placeholder="Rua principal"
               value={street}
               onChange={(event) => setStreet(event.target.value)}
-              className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              className="form-input"
             />
           </div>
 
@@ -391,7 +388,7 @@ export const HousesPage = () => {
                 value={houseNumber}
                 onChange={(event) => setHouseNumber(event.target.value)}
                 required
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
             <label className="grid gap-2 text-sm">
@@ -401,7 +398,7 @@ export const HousesPage = () => {
                 placeholder="00000-000"
                 value={cep}
                 onChange={(event) => setCep(event.target.value)}
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
           </div>
@@ -414,7 +411,7 @@ export const HousesPage = () => {
                 placeholder="Perto do mercado"
                 value={reference}
                 onChange={(event) => setReference(event.target.value)}
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
             <label className="grid gap-2 text-sm">
@@ -424,7 +421,7 @@ export const HousesPage = () => {
                 placeholder="Casa A"
                 value={complement}
                 onChange={(event) => setComplement(event.target.value)}
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
           </div>
@@ -436,11 +433,11 @@ export const HousesPage = () => {
               inputMode="decimal"
               value={monthlyAmount}
               onChange={(event) => setMonthlyAmount(event.target.value)}
-              className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              className="form-input"
             />
           </label>
 
-          <div className="grid gap-4 rounded-card border border-border bg-accent-soft p-5">
+          <div className="card-muted grid gap-4 rounded-card p-5">
             <strong className="inline-flex items-center gap-2 text-sm font-semibold">
               <User className="h-4 w-4 text-accent" />
               Responsável (opcional)
@@ -453,7 +450,7 @@ export const HousesPage = () => {
                   placeholder="Nome do responsável"
                   value={responsibleName}
                   onChange={(event) => setResponsibleName(event.target.value)}
-                  className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                  className="form-input"
                 />
               </label>
               <label className="grid gap-2 text-sm">
@@ -463,7 +460,7 @@ export const HousesPage = () => {
                   placeholder="(11) 99999-9999"
                   value={responsiblePhone}
                   onChange={(event) => setResponsiblePhone(event.target.value)}
-                  className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                  className="form-input"
                 />
               </label>
             </div>

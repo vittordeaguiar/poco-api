@@ -125,7 +125,7 @@ export const DashboardPage = () => {
     <section className="grid gap-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+          <h2 className="inline-flex items-center gap-2 text-[1.3rem] font-title">
             <BarChart3 className="h-5 w-5 text-accent" />
             Dashboard
           </h2>
@@ -133,7 +133,7 @@ export const DashboardPage = () => {
         </div>
         <div className="flex flex-wrap gap-2">
           <button
-            className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+            className="btn"
             type="button"
             onClick={handleOpenGenerate}
           >
@@ -141,7 +141,7 @@ export const DashboardPage = () => {
             Gerar faturas do mês
           </button>
           <button
-            className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+            className="btn"
             type="button"
             onClick={handleExportInvoices}
           >
@@ -149,7 +149,7 @@ export const DashboardPage = () => {
             Exportar faturas
           </button>
           <button
-            className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+            className="btn"
             type="button"
             onClick={handleExportPayments}
           >
@@ -160,32 +160,32 @@ export const DashboardPage = () => {
       </div>
 
       {isLoading ? (
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="text-sm text-muted">Carregando dados...</p>
         </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="text-sm text-danger">{error}</p>
         </div>
       ) : null}
 
       {data ? (
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-card surface-panel p-5">
+          <div className="card rounded-card p-5">
             <span className="text-xs text-muted">Recebido</span>
             <strong className="mt-1 block text-lg font-semibold">
               {formatCurrency(data.received_cents)}
             </strong>
           </div>
-          <div className="rounded-card surface-panel p-5">
+          <div className="card rounded-card p-5">
             <span className="text-xs text-muted">Em aberto</span>
             <strong className="mt-1 block text-lg font-semibold">
               {formatCurrency(data.open_cents)}
             </strong>
           </div>
-          <div className="rounded-card surface-panel p-5">
+          <div className="card rounded-card p-5">
             <span className="text-xs text-muted">Casas em atraso</span>
             <strong className="mt-1 block text-lg font-semibold">
               {data.houses_late_count}
@@ -201,7 +201,7 @@ export const DashboardPage = () => {
         onClose={() => setIsGenerateOpen(false)}
         footer={
           <button
-            className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn btn-primary"
             type="submit"
             form="generate-invoices-form"
             disabled={generateLoading}
@@ -224,7 +224,7 @@ export const DashboardPage = () => {
                 onChange={(event) =>
                   setGenerateMonth(Number(event.target.value))
                 }
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-select"
               >
                 {monthOptions.map((item) => (
                   <option key={item.value} value={item.value}>
@@ -242,7 +242,7 @@ export const DashboardPage = () => {
                 onChange={(event) =>
                   setGenerateYear(Number(event.target.value))
                 }
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
           </div>

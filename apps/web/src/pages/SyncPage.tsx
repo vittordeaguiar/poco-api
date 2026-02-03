@@ -94,7 +94,7 @@ export const SyncPage = () => {
   return (
     <section className="grid gap-5">
       <div>
-        <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+        <h2 className="inline-flex items-center gap-2 text-[1.3rem] font-title">
           <RefreshCw className="h-5 w-5 text-accent" />
           Sincronização
         </h2>
@@ -104,19 +104,19 @@ export const SyncPage = () => {
       </div>
 
       {toast ? (
-        <div className="sticky top-[72px] rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-contrast shadow-soft">
+        <div className="sticky top-[72px] rounded-lg border border-border bg-bg-strong px-4 py-3 text-sm font-semibold text-text">
           {toast}
         </div>
       ) : null}
 
-      <div className="grid gap-4 rounded-card surface-panel p-5">
+      <div className="card grid gap-4 rounded-card p-5">
         <div className="flex items-center justify-between gap-4">
           <strong className="inline-flex items-center gap-2 text-sm font-semibold">
             <ListChecks className="h-4 w-4 text-accent" />
             {items.length} pendências
           </strong>
           <button
-            className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn btn-primary"
             type="button"
             disabled={isSyncing || items.length === 0}
             onClick={handleResendAll}
@@ -129,14 +129,14 @@ export const SyncPage = () => {
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="text-sm text-muted">Nenhum item pendente.</p>
         </div>
       ) : (
         <div className="grid gap-4">
           {summary.map((item) => (
             <div
-              className="rounded-card surface-panel p-5"
+              className="card rounded-card p-5"
               key={item.id}
             >
               <strong className="text-sm font-semibold">{item.address}</strong>

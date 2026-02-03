@@ -307,7 +307,7 @@ export const PeoplePage = () => {
     <section className="grid gap-5">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+          <h2 className="inline-flex items-center gap-2 text-[1.3rem] font-title">
             <Users className="h-5 w-5 text-accent" />
             Responsáveis
           </h2>
@@ -318,13 +318,13 @@ export const PeoplePage = () => {
       </header>
 
       {toast ? (
-        <div className="sticky top-[72px] rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-contrast shadow-soft">
+        <div className="sticky top-[72px] rounded-lg border border-border bg-bg-strong px-4 py-3 text-sm font-semibold text-text">
           {toast}
         </div>
       ) : null}
 
       <div className="grid gap-5 lg:grid-cols-[1fr_1.4fr]">
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="inline-flex items-center gap-2 text-sm text-muted">
             <UserPlus className="h-4 w-4 text-accent" />
             Novo responsável
@@ -337,7 +337,7 @@ export const PeoplePage = () => {
                 placeholder="Nome completo"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
                 required
               />
             </label>
@@ -348,7 +348,7 @@ export const PeoplePage = () => {
                 placeholder="(00) 00000-0000"
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
             <label className="grid gap-2 text-sm">
@@ -358,7 +358,7 @@ export const PeoplePage = () => {
                 placeholder="(00) 90000-0000"
                 value={mobile}
                 onChange={(event) => setMobile(event.target.value)}
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
             <label className="grid gap-2 text-sm">
@@ -368,7 +368,7 @@ export const PeoplePage = () => {
                 placeholder="exemplo@email.com"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
             <label className="grid gap-2 text-sm">
@@ -379,7 +379,7 @@ export const PeoplePage = () => {
                 placeholder="000.000.000-00"
                 value={cpf}
                 onChange={(event) => setCpf(event.target.value)}
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
             <label className="grid gap-2 text-sm">
@@ -389,7 +389,7 @@ export const PeoplePage = () => {
                 placeholder="00.000.000-0"
                 value={rg}
                 onChange={(event) => setRg(event.target.value)}
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
             <label className="grid gap-2 text-sm">
@@ -398,26 +398,22 @@ export const PeoplePage = () => {
                 placeholder="Ex: prefere contato por WhatsApp"
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
-                className="min-h-[90px] rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-textarea"
               />
             </label>
             {formError ? (
-              <p className="rounded-xl border border-dashed border-danger/50 bg-danger/10 px-3 py-2 text-xs text-danger">
+              <p className="rounded-lg border border-dashed border-danger/50 bg-danger/10 px-3 py-2 text-xs text-danger">
                 {formError}
               </p>
             ) : null}
-            <button
-              className="inline-flex items-center justify-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
-              type="submit"
-              disabled={isSubmitting}
-            >
+            <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
               <Save className="h-4 w-4" />
               {isSubmitting ? "Salvando..." : "Salvar"}
             </button>
           </form>
         </div>
 
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="inline-flex items-center gap-2 text-sm text-muted">
               <Users className="h-4 w-4 text-accent" />
@@ -427,7 +423,7 @@ export const PeoplePage = () => {
               className="flex w-full flex-wrap items-center gap-2 md:w-auto"
               onSubmit={handleSearch}
             >
-              <div className="flex w-full items-center gap-2 rounded-pill border border-border bg-bg-strong px-3 py-2 text-sm md:w-[240px]">
+              <div className="flex w-full items-center gap-2 rounded-lg border border-border bg-bg-strong px-3 py-2 text-sm md:w-[240px]">
                 <Search className="h-4 w-4 text-muted" />
                 <input
                   type="search"
@@ -438,7 +434,7 @@ export const PeoplePage = () => {
                 />
               </div>
               <button
-                className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+                className="btn btn-sm"
                 type="submit"
               >
                 Filtrar
@@ -463,7 +459,7 @@ export const PeoplePage = () => {
               !loadError &&
               people.map((person) => (
                 <div
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-bg-strong px-4 py-3"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-bg-strong px-4 py-3"
                   key={person.id}
                 >
                   <div>
@@ -485,24 +481,14 @@ export const PeoplePage = () => {
                       Casas ativas: {person.active_houses}
                     </p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-3 py-2 text-xs font-semibold text-text transition hover:opacity-80"
-                      type="button"
-                      onClick={() => openPersonModal(person)}
-                    >
-                      <Eye className="h-4 w-4" />
-                      Ver detalhes
-                    </button>
-                    <button
-                      className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-3 py-2 text-xs font-semibold text-text transition hover:opacity-80"
-                      type="button"
-                      onClick={() => openLinkModal(person)}
-                    >
-                      <Link2 className="h-4 w-4" />
-                      Vincular casa
-                    </button>
-                  </div>
+                  <button
+                    className="btn btn-sm"
+                    type="button"
+                    onClick={() => openLinkModal(person)}
+                  >
+                    <Link2 className="h-4 w-4" />
+                    Vincular casa
+                  </button>
                 </div>
               ))}
           </div>
@@ -681,16 +667,12 @@ export const PeoplePage = () => {
         eyebrow="Sincronizar com casa"
         onClose={closeLinkModal}
         footer={
-          <div className="flex justify-end">
-            <button
-              className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
-              type="button"
-              onClick={closeLinkModal}
-            >
+          <div className="flex justify-end gap-2">
+            <button className="btn" type="button" onClick={closeLinkModal}>
               Cancelar
             </button>
             <button
-              className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn btn-primary"
               type="button"
               onClick={handleLink}
               disabled={isLinking}
@@ -716,7 +698,7 @@ export const PeoplePage = () => {
             <select
               value={selectedHouseId}
               onChange={(event) => setSelectedHouseId(event.target.value)}
-              className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              className="form-select"
             >
               <option value="">Escolha a casa</option>
               {houseOptions.map((option) => (
@@ -727,7 +709,7 @@ export const PeoplePage = () => {
             </select>
           </label>
           {linkError ? (
-            <p className="rounded-xl border border-dashed border-danger/50 bg-danger/10 px-3 py-2 text-xs text-danger">
+            <p className="rounded-lg border border-dashed border-danger/50 bg-danger/10 px-3 py-2 text-xs text-danger">
               {linkError}
             </p>
           ) : null}
