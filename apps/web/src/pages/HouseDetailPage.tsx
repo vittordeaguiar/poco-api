@@ -172,17 +172,17 @@ export const HouseDetailPage = () => {
   const statusClass = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-accent-soft text-success";
+        return "badge text-success";
       case "pending":
       case "open":
-        return "bg-accent-soft text-warning";
+        return "badge text-warning";
       case "inactive":
       case "void":
-        return "bg-accent-soft text-muted";
+        return "badge text-muted";
       case "paid":
-        return "bg-accent-soft text-success";
+        return "badge text-success";
       default:
-        return "bg-accent-soft text-muted";
+        return "badge text-muted";
     }
   };
 
@@ -305,7 +305,7 @@ export const HouseDetailPage = () => {
     <section className="grid gap-5">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+          <h2 className="inline-flex items-center gap-2 text-[1.3rem] font-title">
             <Home className="h-5 w-5 text-accent" />
             Casa
           </h2>
@@ -313,7 +313,7 @@ export const HouseDetailPage = () => {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
-            className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+            className="btn btn-sm"
             type="button"
             onClick={openEditModal}
           >
@@ -321,7 +321,7 @@ export const HouseDetailPage = () => {
             Editar
           </button>
           <button
-            className="inline-flex items-center gap-2 rounded-pill border border-danger/40 bg-bg-strong px-4 py-2 text-sm font-semibold text-danger"
+            className="btn btn-sm border-danger/40 text-danger"
             type="button"
             onClick={() => {
               setDeleteError(null);
@@ -331,10 +331,7 @@ export const HouseDetailPage = () => {
             <Trash2 className="h-4 w-4" />
             Excluir
           </button>
-          <Link
-            className="inline-flex items-center gap-2 text-sm font-semibold text-text"
-            to={cameFromPending ? "/pending" : "/houses"}
-          >
+          <Link className="btn btn-sm" to={cameFromPending ? "/pending" : "/houses"}>
             <ArrowLeft className="h-4 w-4" />
             Voltar
           </Link>
@@ -342,26 +339,26 @@ export const HouseDetailPage = () => {
       </header>
 
       {toast ? (
-        <div className="sticky top-[72px] rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-contrast shadow-soft">
+        <div className="sticky top-[72px] rounded-lg border border-border bg-bg-strong px-4 py-3 text-sm font-semibold text-text">
           {toast}
         </div>
       ) : null}
 
       {isLoading ? (
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="text-sm text-muted">Carregando...</p>
         </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="text-sm text-danger">{error}</p>
         </div>
       ) : null}
 
       {data ? (
         <>
-          <div className="rounded-card surface-panel p-5">
+          <div className="card rounded-card p-5">
             <p className="inline-flex items-center gap-2 text-sm text-muted">
               <ClipboardList className="h-4 w-4 text-accent" />
               Informações principais
@@ -375,11 +372,7 @@ export const HouseDetailPage = () => {
               </div>
               <div>
                 <span className="text-xs text-muted">Status</span>
-                <span
-                  className={`mt-2 inline-flex items-center rounded-pill px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] ${statusClass(
-                    data.house.status
-                  )}`}
-                >
+                <span className={`mt-2 ${statusClass(data.house.status)}`}>
                   {houseStatusLabel(data.house.status)}
                 </span>
               </div>
@@ -398,7 +391,7 @@ export const HouseDetailPage = () => {
             </div>
           </div>
 
-          <div className="rounded-card surface-panel p-5">
+          <div className="card rounded-card p-5">
             <p className="inline-flex items-center gap-2 text-sm text-muted">
               <User className="h-4 w-4 text-accent" />
               Responsável atual
@@ -423,7 +416,7 @@ export const HouseDetailPage = () => {
             )}
           </div>
 
-          <div className="grid gap-4 rounded-card surface-panel p-5">
+          <div className="card grid gap-4 rounded-card p-5">
             <p className="inline-flex items-center gap-2 text-sm text-muted">
               <Receipt className="h-4 w-4 text-accent" />
               Últimas faturas
@@ -445,11 +438,7 @@ export const HouseDetailPage = () => {
                     </p>
                   </div>
                   <div className="grid gap-2 md:justify-items-end">
-                    <span
-                      className={`inline-flex items-center rounded-pill px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] ${statusClass(
-                        invoice.status
-                      )}`}
-                    >
+                    <span className={statusClass(invoice.status)}>
                       {invoiceStatusLabel(invoice.status)}
                     </span>
                     {invoice.status === "paid" ? (
@@ -467,7 +456,7 @@ export const HouseDetailPage = () => {
                               [invoice.id]: event.target.value
                             }))
                           }
-                          className="rounded-xl border border-border bg-bg-strong px-2.5 py-2 text-sm"
+                          className="form-select text-sm"
                         >
                           {paymentMethods.map((item) => (
                             <option key={item.value} value={item.value}>
@@ -485,10 +474,10 @@ export const HouseDetailPage = () => {
                               [invoice.id]: event.target.value
                             }))
                           }
-                          className="rounded-xl border border-border bg-bg-strong px-2.5 py-2 text-sm text-text"
+                          className="form-input text-sm"
                         />
                         <button
-                          className="inline-flex items-center gap-2 rounded-pill bg-accent px-4 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+                          className="btn btn-primary btn-sm"
                           type="button"
                           disabled={paying[invoice.id]}
                           onClick={() => handlePay(invoice.id)}
@@ -504,7 +493,7 @@ export const HouseDetailPage = () => {
             )}
           </div>
 
-          <div className="grid gap-4 rounded-card surface-panel p-5">
+          <div className="card grid gap-4 rounded-card p-5">
             <p className="inline-flex items-center gap-2 text-sm text-muted">
               <Users className="h-4 w-4 text-accent" />
               Histórico de responsáveis
@@ -542,7 +531,7 @@ export const HouseDetailPage = () => {
         onClose={() => setIsEditOpen(false)}
         footer={
           <button
-            className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn btn-primary"
             type="submit"
             form="edit-house-form"
             disabled={isSaving}
@@ -564,7 +553,7 @@ export const HouseDetailPage = () => {
                 type="text"
                 value={editStreet}
                 onChange={(event) => setEditStreet(event.target.value)}
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
             <label className="grid gap-2 text-sm">
@@ -573,7 +562,7 @@ export const HouseDetailPage = () => {
                 type="text"
                 value={editHouseNumber}
                 onChange={(event) => setEditHouseNumber(event.target.value)}
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
           </div>
@@ -585,7 +574,7 @@ export const HouseDetailPage = () => {
                 type="text"
                 value={editCep}
                 onChange={(event) => setEditCep(event.target.value)}
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
             <label className="grid gap-2 text-sm">
@@ -594,7 +583,7 @@ export const HouseDetailPage = () => {
                 type="text"
                 value={editReference}
                 onChange={(event) => setEditReference(event.target.value)}
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
           </div>
@@ -605,7 +594,7 @@ export const HouseDetailPage = () => {
               type="text"
               value={editComplement}
               onChange={(event) => setEditComplement(event.target.value)}
-              className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              className="form-input"
             />
           </label>
 
@@ -617,7 +606,7 @@ export const HouseDetailPage = () => {
                 inputMode="decimal"
                 value={editMonthlyAmount}
                 onChange={(event) => setEditMonthlyAmount(event.target.value)}
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-input"
               />
             </label>
             <label className="grid gap-2 text-sm">
@@ -627,7 +616,7 @@ export const HouseDetailPage = () => {
                 onChange={(event) =>
                   setEditStatus(event.target.value as HouseDetail["status"])
                 }
-                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                className="form-select"
               >
                 <option value="active">Ativo</option>
                 <option value="inactive">Inativo</option>
@@ -649,7 +638,7 @@ export const HouseDetailPage = () => {
         onClose={() => setIsDeleteOpen(false)}
         footer={
           <button
-            className="inline-flex items-center gap-2 rounded-pill bg-danger px-5 py-2 text-sm font-bold text-danger-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn btn-danger"
             type="button"
             onClick={handleDelete}
             disabled={isDeleting}

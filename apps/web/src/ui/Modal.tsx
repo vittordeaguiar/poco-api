@@ -33,17 +33,17 @@ export const Modal = ({
 
   return (
     <div
-      className="fixed inset-0 z-10 flex items-center justify-center bg-[rgba(30,26,22,0.55)] p-6"
+      className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
       onClick={handleBackdropClick}
     >
-      <div className="flex max-h-[85vh] w-full max-w-[640px] flex-col overflow-hidden rounded-modal surface-panel">
+      <div className="card flex max-h-[85vh] w-full max-w-[640px] flex-col overflow-hidden rounded-modal">
         <div className="flex items-center justify-between gap-4 px-5 pb-4 pt-6 sm:px-6">
           <div>
             {eyebrow ? (
-              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.28em] text-muted">
+              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.26em] text-muted">
                 {eyebrow}
               </p>
             ) : null}
@@ -53,7 +53,7 @@ export const Modal = ({
           </div>
           {onClose ? (
             <button
-              className="inline-flex items-center gap-2 text-sm font-semibold text-text transition hover:opacity-80"
+              className="btn btn-ghost btn-sm"
               onClick={onClose}
             >
               <X className="h-4 w-4" />

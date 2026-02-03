@@ -58,13 +58,13 @@ export const LoginPage = () => {
         <ThemeToggle />
       </div>
       <form
-        className="grid w-full max-w-[360px] gap-2 rounded-modal surface-panel p-8"
+        className="card grid w-full max-w-[360px] gap-3 rounded-modal p-8"
         onSubmit={handleSubmit}
       >
-        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.28em] text-muted">
+        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.26em] text-muted">
           Aguiar
         </p>
-        <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+        <h2 className="inline-flex items-center gap-2 text-[1.3rem] font-title">
           <LogIn className="h-5 w-5 text-accent" />
           Entrar
         </h2>
@@ -80,12 +80,12 @@ export const LoginPage = () => {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             autoComplete="current-password"
-            className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+            className="form-input"
           />
         </label>
         {error ? <p className="text-sm text-danger">{error}</p> : null}
         <button
-          className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-pill bg-accent px-5 py-2.5 font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none"
+          className="btn btn-primary btn-lg mt-2 w-full"
           type="submit"
           disabled={isLoading}
         >

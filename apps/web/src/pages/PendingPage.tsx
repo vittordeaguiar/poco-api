@@ -145,7 +145,7 @@ export const PendingPage = () => {
     <section className="grid gap-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+          <h2 className="inline-flex items-center gap-2 text-[1.3rem] font-title">
             <AlertTriangle className="h-5 w-5 text-accent" />
             Pendências
           </h2>
@@ -154,12 +154,12 @@ export const PendingPage = () => {
       </div>
 
       {toast ? (
-        <div className="sticky top-[72px] rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-contrast shadow-soft">
+        <div className="sticky top-[72px] rounded-lg border border-border bg-bg-strong px-4 py-3 text-sm font-semibold text-text">
           {toast}
         </div>
       ) : null}
 
-      <div className="grid gap-4 rounded-card surface-panel p-5">
+      <div className="card grid gap-4 rounded-card p-5">
         <label className="grid gap-2 text-sm">
           <span className="inline-flex items-center gap-2">
             <Search className="h-4 w-4 text-accent" />
@@ -170,7 +170,7 @@ export const PendingPage = () => {
             placeholder="Rua, número ou responsável"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+            className="form-input"
           />
         </label>
 
@@ -198,19 +198,19 @@ export const PendingPage = () => {
       </div>
 
       {isLoading ? (
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="text-sm text-muted">Carregando pendências...</p>
         </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="text-sm text-danger">{error}</p>
         </div>
       ) : null}
 
       {!isLoading && !error && filteredItems.length === 0 ? (
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="text-sm text-muted">Nenhuma pendência encontrada.</p>
         </div>
       ) : null}
@@ -219,10 +219,7 @@ export const PendingPage = () => {
         ? filteredItems.map((item) => {
             const houseKey = item.house_id ?? item.id;
             return (
-              <div
-                className="grid gap-4 rounded-card surface-panel p-5"
-                key={houseKey}
-              >
+              <div className="card grid gap-4 rounded-card p-5" key={houseKey}>
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <strong className="text-sm font-semibold">
@@ -237,7 +234,7 @@ export const PendingPage = () => {
                 <div className="flex flex-wrap gap-2">
                   {item.pending_reasons.map((reason) => (
                     <span
-                      className="inline-flex items-center rounded-pill bg-accent-soft px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] text-warning"
+                      className="badge text-warning"
                       key={reason}
                     >
                       {reasonLabels[reason] ?? reason}
@@ -248,7 +245,7 @@ export const PendingPage = () => {
 
               <div className="flex flex-wrap gap-3">
                 <Link
-                  className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+                  className="btn btn-sm"
                   to={`/houses/${houseKey}`}
                   state={{ fromPending: true, openEdit: true }}
                 >
@@ -257,7 +254,7 @@ export const PendingPage = () => {
                 </Link>
               </div>
 
-              <div className="grid gap-4 rounded-card border border-border bg-accent-soft p-5">
+              <div className="card-muted grid gap-4 rounded-card p-5">
                 <strong className="inline-flex items-center gap-2 text-sm font-semibold">
                   <UserPlus className="h-4 w-4 text-accent" />
                   Definir responsável
@@ -274,7 +271,7 @@ export const PendingPage = () => {
                           [houseKey]: event.target.value
                         }))
                       }
-                      className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                      className="form-input"
                     />
                   </label>
                   <label className="grid gap-2 text-sm">
@@ -288,7 +285,7 @@ export const PendingPage = () => {
                           [houseKey]: event.target.value
                         }))
                       }
-                      className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                      className="form-input"
                     />
                   </label>
                 </div>
@@ -297,7 +294,7 @@ export const PendingPage = () => {
                 ) : null}
                 <div className="flex justify-end">
                   <button
-                    className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+                    className="btn btn-primary"
                     type="button"
                     disabled={assignLoading[houseKey]}
                     onClick={() => handleAssign(houseKey)}

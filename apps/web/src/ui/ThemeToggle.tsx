@@ -13,19 +13,11 @@ export const ThemeToggle = ({ compact }: ThemeToggleProps) => {
   return (
     <button
       type="button"
-      className={[
-        "inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong text-xs font-semibold text-text shadow-soft transition active:translate-y-px active:shadow-none",
-        compact ? "px-2.5 py-1" : "px-3 py-1.5"
-      ].join(" ")}
+      className={["btn", compact ? "btn-sm" : ""].join(" ")}
       onClick={toggleTheme}
       aria-label={`Alternar tema. Atual: ${label}`}
     >
-      <span
-        className="relative flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--accent),#f2b37a)] text-accent-contrast shadow-[0_6px_16px_rgba(216,90,42,0.35)]"
-        aria-hidden="true"
-      >
-        <Icon className="h-3.5 w-3.5" />
-      </span>
+      <Icon className="h-4 w-4 text-muted" aria-hidden="true" />
       <span className="tracking-[0.02em]">{label}</span>
     </button>
   );

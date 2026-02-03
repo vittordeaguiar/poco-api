@@ -64,14 +64,14 @@ export const LatePage = () => {
     <section className="grid gap-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+          <h2 className="inline-flex items-center gap-2 text-[1.3rem] font-title">
             <Timer className="h-5 w-5 text-accent" />
             Casas em atraso
           </h2>
           <p className="text-sm text-muted">Lista de pendências até este mês.</p>
         </div>
         <button
-          className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+          className="btn"
           type="button"
           onClick={() =>
             apiDownload(
@@ -86,29 +86,26 @@ export const LatePage = () => {
       </div>
 
       {isLoading ? (
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="text-sm text-muted">Carregando lista...</p>
         </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="text-sm text-danger">{error}</p>
         </div>
       ) : null}
 
       {!isLoading && !error && items.length === 0 ? (
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="text-sm text-muted">Nenhuma casa em atraso por enquanto.</p>
         </div>
       ) : null}
 
       {!isLoading && !error
         ? items.map((item) => (
-            <div
-              className="grid gap-4 rounded-card surface-panel p-5"
-              key={item.house.id}
-            >
+            <div className="card grid gap-4 rounded-card p-5" key={item.house.id}>
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <strong className="text-sm font-semibold">
@@ -121,7 +118,7 @@ export const LatePage = () => {
                       : "Sem responsável atual"}
                   </p>
                 </div>
-                <span className="inline-flex items-center rounded-pill bg-accent-soft px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.04em] text-warning">
+                <span className="badge text-warning">
                   {item.months_late} meses em atraso
                 </span>
               </div>

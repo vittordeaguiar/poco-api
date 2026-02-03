@@ -42,7 +42,7 @@ export const AuditPage = () => {
   return (
     <section className="grid gap-5">
       <div>
-        <h2 className="inline-flex items-center gap-2 text-[1.4rem] font-title">
+        <h2 className="inline-flex items-center gap-2 text-[1.3rem] font-title">
           <ClipboardCheck className="h-5 w-5 text-accent" />
           Audit log
         </h2>
@@ -50,29 +50,26 @@ export const AuditPage = () => {
       </div>
 
       {isLoading ? (
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="text-sm text-muted">Carregando logs...</p>
         </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="text-sm text-danger">{error}</p>
         </div>
       ) : null}
 
       {!isLoading && !error && items.length === 0 ? (
-        <div className="rounded-card surface-panel p-5">
+        <div className="card rounded-card p-5">
           <p className="text-sm text-muted">Nenhum registro encontrado.</p>
         </div>
       ) : null}
 
       {!isLoading && !error
         ? items.map((item) => (
-            <div
-              className="grid gap-4 rounded-card surface-panel p-5"
-              key={item.id}
-            >
+            <div className="card grid gap-4 rounded-card p-5" key={item.id}>
               <div className="flex items-start justify-between gap-4">
                 <strong className="inline-flex items-center gap-2 text-sm font-semibold">
                   <FileText className="h-4 w-4 text-accent" />
@@ -93,7 +90,7 @@ export const AuditPage = () => {
               </div>
               <div>
                 <span className="text-xs text-muted">Resumo</span>
-                <pre className="mt-2 rounded-xl border border-border bg-accent-soft p-3 text-xs">
+                <pre className="mt-2 rounded-lg border border-border bg-bg-soft p-3 text-xs">
                   {JSON.stringify(item.summary, null, 2)}
                 </pre>
               </div>
