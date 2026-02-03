@@ -1,5 +1,6 @@
-import { createPersonSchema, peopleQuerySchema } from "../schemas/people";
-import { createPerson, listPeople } from "../services/peopleService";
+import { createPersonSchema, peopleQuerySchema, updatePersonSchema } from "../schemas/people";
+import { createPerson, listPeople, updatePerson } from "../services/peopleService";
+import { ServiceError } from "../services/serviceError";
 import type { AppHandler } from "../types";
 
 export const listPeopleHandler: AppHandler = async (c) => {
@@ -67,6 +68,63 @@ export const createPersonHandler: AppHandler = async (c) => {
         ok: false,
         error: {
           message: "Database error while creating person",
+          details: error instanceof Error ? error.message : String(error)
+        }
+      },
+      500
+    );
+  }
+};
+
+export const updatePersonHandler: AppHandler = async (c) => {
+  const personId = c.req.param("id").trim();
+  if (!personId) {
+    return c.json(
+      { ok: false, error: { message: "Person id is required" } },
+      400
+    );
+  }
+
+  let payload: unknown;
+  try {
+    payload = await c.req.json();
+  } catch {
+    return c.json({ ok: false, error: { message: "Invalid JSON body" } }, 400);
+  }
+
+  const parsed = updatePersonSchema.safeParse(payload);
+  if (!parsed.success) {
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Invalid request body",
+          details: parsed.error.flatten()
+        }
+      },
+      400
+    );
+  }
+
+  if (Object.keys(parsed.data).length === 0) {
+    return c.json(
+      { ok: false, error: { message: "No fields provided for update" } },
+      400
+    );
+  }
+
+  try {
+    const data = await updatePerson(c.env.poco_db, personId, parsed.data);
+    return c.json({ ok: true, data });
+  } catch (error) {
+    if (error instanceof ServiceError) {
+      return c.json({ ok: false, error: { message: error.message } }, error.status);
+    }
+    return c.json(
+      {
+        ok: false,
+        error: {
+          message: "Database error while updating person",
           details: error instanceof Error ? error.message : String(error)
         }
       },

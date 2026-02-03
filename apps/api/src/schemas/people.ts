@@ -17,3 +17,15 @@ export const createPersonSchema = z
     notes: z.string().trim().min(1).optional()
   })
   .strict();
+
+export const updatePersonSchema = z
+  .object({
+    name: z.string().trim().optional(),
+    phone: z.string().trim().nullable().optional(),
+    mobile: z.string().trim().nullable().optional(),
+    cpf: z.string().trim().nullable().optional(),
+    email: z.string().trim().nullable().optional(),
+    rg: z.string().trim().nullable().optional(),
+    notes: z.string().trim().nullable().optional()
+  })
+  .strict();

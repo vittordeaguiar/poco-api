@@ -1,5 +1,7 @@
 import {
+  Eye,
   Link2,
+  Pencil,
   Save,
   Search,
   UserPlus,
@@ -65,6 +67,18 @@ export const PeoplePage = () => {
   const [selectedHouseId, setSelectedHouseId] = useState("");
   const [linkError, setLinkError] = useState<string | null>(null);
   const [isLinking, setIsLinking] = useState(false);
+
+  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const [isEditingPerson, setIsEditingPerson] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editMobile, setEditMobile] = useState("");
+  const [editCpf, setEditCpf] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editRg, setEditRg] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+  const [updateError, setUpdateError] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const houseOptions = useMemo(
     () =>
@@ -220,6 +234,72 @@ export const PeoplePage = () => {
       );
     } finally {
       setIsLinking(false);
+    }
+  };
+
+  const openPersonModal = (person: Person) => {
+    setSelectedPerson(person);
+    setIsEditingPerson(false);
+    setEditName(person.name ?? "");
+    setEditPhone(person.phone ?? "");
+    setEditMobile(person.mobile ?? "");
+    setEditCpf(person.cpf ?? "");
+    setEditEmail(person.email ?? "");
+    setEditRg(person.rg ?? "");
+    setEditNotes(person.notes ?? "");
+    setUpdateError(null);
+  };
+
+  const closePersonModal = () => {
+    setSelectedPerson(null);
+    setIsEditingPerson(false);
+    setUpdateError(null);
+  };
+
+  const startPersonEdit = () => {
+    setIsEditingPerson(true);
+    setUpdateError(null);
+  };
+
+  const handleUpdatePerson = async () => {
+    if (!selectedPerson) {
+      return;
+    }
+
+    if (!editName.trim()) {
+      setUpdateError("Informe o nome do responsável.");
+      return;
+    }
+
+    setIsUpdating(true);
+    setUpdateError(null);
+
+    try {
+      await apiFetch(`/people/${selectedPerson.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: editName.trim(),
+          phone: editPhone.trim() ? editPhone.trim() : null,
+          mobile: editMobile.trim() ? editMobile.trim() : null,
+          cpf: editCpf.trim() ? editCpf.trim() : null,
+          email: editEmail.trim() ? editEmail.trim() : null,
+          rg: editRg.trim() ? editRg.trim() : null,
+          notes: editNotes.trim() ? editNotes.trim() : null
+        })
+      });
+      showToast("Responsável atualizado com sucesso!");
+      closePersonModal();
+      loadPeople(search);
+      loadHouses();
+    } catch (error) {
+      setUpdateError(
+        error instanceof Error ? error.message : "Falha ao atualizar responsável."
+      );
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -405,19 +485,195 @@ export const PeoplePage = () => {
                       Casas ativas: {person.active_houses}
                     </p>
                   </div>
-                  <button
-                    className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-3 py-2 text-xs font-semibold text-text transition hover:opacity-80"
-                    type="button"
-                    onClick={() => openLinkModal(person)}
-                  >
-                    <Link2 className="h-4 w-4" />
-                    Vincular casa
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-3 py-2 text-xs font-semibold text-text transition hover:opacity-80"
+                      type="button"
+                      onClick={() => openPersonModal(person)}
+                    >
+                      <Eye className="h-4 w-4" />
+                      Ver detalhes
+                    </button>
+                    <button
+                      className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-3 py-2 text-xs font-semibold text-text transition hover:opacity-80"
+                      type="button"
+                      onClick={() => openLinkModal(person)}
+                    >
+                      <Link2 className="h-4 w-4" />
+                      Vincular casa
+                    </button>
+                  </div>
                 </div>
               ))}
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={Boolean(selectedPerson)}
+        title="Detalhes do responsável"
+        eyebrow="Cadastro"
+        onClose={closePersonModal}
+        footer={
+          isEditingPerson ? (
+            <>
+              <button
+                className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+                type="button"
+                onClick={() => setIsEditingPerson(false)}
+                disabled={isUpdating}
+              >
+                Cancelar edição
+              </button>
+              <button
+                className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+                type="button"
+                onClick={handleUpdatePerson}
+                disabled={isUpdating}
+              >
+                <Save className="h-4 w-4" />
+                {isUpdating ? "Salvando..." : "Salvar alterações"}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="inline-flex items-center gap-2 rounded-pill border border-border bg-bg-strong px-4 py-2 text-sm font-semibold text-text"
+                type="button"
+                onClick={closePersonModal}
+              >
+                Fechar
+              </button>
+              <button
+                className="inline-flex items-center gap-2 rounded-pill bg-accent px-5 py-2 text-sm font-bold text-accent-contrast shadow-soft transition active:translate-y-px active:shadow-none"
+                type="button"
+                onClick={startPersonEdit}
+              >
+                <Pencil className="h-4 w-4" />
+                Editar
+              </button>
+            </>
+          )
+        }
+      >
+        {isEditingPerson ? (
+          <div className="grid gap-4">
+            <label className="grid gap-2 text-sm">
+              <span>Nome</span>
+              <input
+                type="text"
+                placeholder="Nome completo"
+                value={editName}
+                onChange={(event) => setEditName(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+                required
+              />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span>Telefone</span>
+              <input
+                type="tel"
+                placeholder="(00) 00000-0000"
+                value={editPhone}
+                onChange={(event) => setEditPhone(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span>Celular</span>
+              <input
+                type="tel"
+                placeholder="(00) 90000-0000"
+                value={editMobile}
+                onChange={(event) => setEditMobile(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span>Email</span>
+              <input
+                type="email"
+                placeholder="exemplo@email.com"
+                value={editEmail}
+                onChange={(event) => setEditEmail(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span>CPF</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="000.000.000-00"
+                value={editCpf}
+                onChange={(event) => setEditCpf(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span>RG</span>
+              <input
+                type="text"
+                placeholder="00.000.000-0"
+                value={editRg}
+                onChange={(event) => setEditRg(event.target.value)}
+                className="rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+            <label className="grid gap-2 text-sm">
+              <span>Observações</span>
+              <textarea
+                placeholder="Ex: prefere contato por WhatsApp"
+                value={editNotes}
+                onChange={(event) => setEditNotes(event.target.value)}
+                className="min-h-[90px] rounded-2xl border border-border bg-bg-strong px-3.5 py-2.5 text-base text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]"
+              />
+            </label>
+            {updateError ? (
+              <p className="rounded-xl border border-dashed border-danger/50 bg-danger/10 px-3 py-2 text-xs text-danger">
+                {updateError}
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <div className="grid gap-4 text-sm text-text">
+            <div className="grid gap-1">
+              <span className="text-xs text-muted">Nome</span>
+              <strong className="text-base font-semibold">
+                {selectedPerson?.name}
+              </strong>
+            </div>
+            <div className="grid gap-1">
+              <span className="text-xs text-muted">Telefone</span>
+              <span>{selectedPerson?.phone ?? "Sem telefone"}</span>
+            </div>
+            <div className="grid gap-1">
+              <span className="text-xs text-muted">Celular</span>
+              <span>{selectedPerson?.mobile ?? "Sem celular"}</span>
+            </div>
+            <div className="grid gap-1">
+              <span className="text-xs text-muted">Email</span>
+              <span>{selectedPerson?.email ?? "Sem email"}</span>
+            </div>
+            <div className="grid gap-1">
+              <span className="text-xs text-muted">CPF</span>
+              <span>{selectedPerson?.cpf ?? "CPF não informado"}</span>
+            </div>
+            <div className="grid gap-1">
+              <span className="text-xs text-muted">RG</span>
+              <span>{selectedPerson?.rg ?? "RG não informado"}</span>
+            </div>
+            <div className="grid gap-1">
+              <span className="text-xs text-muted">Observações</span>
+              <span>{selectedPerson?.notes ?? "Sem observações"}</span>
+            </div>
+            <div className="grid gap-1">
+              <span className="text-xs text-muted">Casas ativas</span>
+              <span>{selectedPerson?.active_houses ?? 0}</span>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       <Modal
         isOpen={Boolean(linkingPerson)}

@@ -150,5 +150,44 @@ export const buildInsertPersonStatement = (
       data.cpf,
       data.email,
       data.rg,
-      data.notes
+    data.notes
+    );
+
+export const buildUpdatePersonStatement = (
+  db: D1Database,
+  data: {
+    id: string;
+    name: string;
+    phone: string | null;
+    mobile: string | null;
+    cpf: string | null;
+    email: string | null;
+    rg: string | null;
+    notes: string | null;
+    updated_at: string;
+  }
+) =>
+  db
+    .prepare(
+      `UPDATE people
+       SET name = ?,
+           phone = ?,
+           mobile = ?,
+           cpf = ?,
+           email = ?,
+           rg = ?,
+           notes = ?,
+           updated_at = ?
+       WHERE id = ?`
+    )
+    .bind(
+      data.name,
+      data.phone,
+      data.mobile,
+      data.cpf,
+      data.email,
+      data.rg,
+      data.notes,
+      data.updated_at,
+      data.id
     );
